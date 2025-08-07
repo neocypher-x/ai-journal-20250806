@@ -1,0 +1,18 @@
+[project]
+name = "ai-journal"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "neocypher",email = "5590838+neocypher-x@users.noreply.github.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "doppler-env (>=0.3.1,<0.4.0)",
+    "fastapi (>=0.116.1,<0.117.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
