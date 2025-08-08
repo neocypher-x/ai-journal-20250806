@@ -153,6 +153,53 @@ async def reflect(
     """
     Main reflection endpoint that processes journal entries and returns
     philosophical reflection prompts and advice.
+    
+    Processes journal entries through multiple philosophy coach agents (Buddhist, Stoic, 
+    Existentialist) to provide actionable reflection prompts and concrete guidance.
+    
+    ## Example Usage:
+    
+    ```bash
+    # Basic journal reflection
+    curl -X POST "http://localhost:8000/reflect" \
+         -H "Content-Type: application/json" \
+         -d '{
+           "journal_text": "Today I felt overwhelmed at work but managed to complete my project. I keep wondering if I am focusing on the right priorities in life."
+         }'
+    
+    # With specific question
+    curl -X POST "http://localhost:8000/reflect" \
+         -H "Content-Type: application/json" \
+         -d '{
+           "journal_text": "I had a difficult conversation with my partner today about our future plans. We both want different things and I feel torn between following my career ambitions and prioritizing our relationship.",
+           "question": "How can I navigate this conflict between personal ambition and relationship needs?"
+         }'
+    
+    # Example with longer journal entry
+    curl -X POST "http://localhost:8000/reflect" \
+         -H "Content-Type: application/json" \
+         -d '{
+           "journal_text": "This morning I woke up feeling anxious about the presentation I have to give next week. Despite having prepared extensively, I keep doubting myself and imagining all the ways it could go wrong. I noticed that this pattern of catastrophic thinking has been happening more frequently lately, especially around work situations where I feel like I am being evaluated. I took a few deep breaths and tried to remind myself of past successes, but the worry persists. I wonder if this anxiety is trying to tell me something important about my relationship with work and achievement.",
+           "question": "What might this anxiety be teaching me about myself?"
+         }'
+    ```
+    
+    ## Response Format:
+    
+    Returns a ReflectResponse with:
+    - `summary`: Concise summary of the journal content (≤120 words)
+    - `themes`: Key themes identified (1-5 items)  
+    - `mood`: Detected emotional state (calm|tense|stressed|sad|angry|energized|mixed)
+    - `prompts`: Actionable reflection prompts from different philosophical traditions (max 5)
+    - `advice`: Concrete guidance tailored to the journal content (≤120 words)
+    - `warnings`: Any processing issues encountered (optional)
+    - `trace_id`: Unique identifier for request tracking
+    - `processed_at`: Timestamp when request was completed
+    
+    ## Rate Limiting:
+    - 30 requests per minute per IP address
+    - 429 status code returned when limit exceeded
+    - Retry-After header indicates wait time in seconds
     """
     try:
         response = await orchestrator.process_reflection(request)
