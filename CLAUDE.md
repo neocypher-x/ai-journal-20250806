@@ -2,98 +2,123 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
-
-This is the AI Journal project - an agentic AI system that provides philosophical reflection and advice based on personal journal entries. The system uses multiple AI agents representing different philosophical schools (Stoicism, Buddhism, Existentialism) to analyze journal content and provide personalized insights.
-
-## Architecture
-
-The project follows a multi-agent architecture pattern:
-
-### Core Components
-- **Router/Mixer**: Central orchestration component that fans out journal entries to multiple philosophical agents in parallel, then aggregates and deduplicates their responses
-- **Philosophical Agents**: Three specialized agents (StoicAgent, BuddhistAgent, ExistentialistAgent) that each provide reflective questions and advice from their respective philosophical perspectives
-- **FastAPI Backend**: Stateless API server with `/reflect` endpoint for processing journal entries
-- **Response Processing**: Deduplication system using Jaccard similarity (≥ 0.8 threshold) to remove similar questions across agents
-
-### Technical Stack
-- **LLM**: OpenAI GPT-4o via OpenAI Agents SDK
-- **API Framework**: FastAPI with async support
-- **Frontend**: Next.js 14 + Tailwind CSS (planned)
-- **Orchestration**: OpenAI Agents SDK for parallel agent execution
-- **Hosting**: Fly.io / Vercel deployment target
-
 ## Development Setup
 
-This project uses the Python development stack documented in `init-python-project-doc.md`:
+This project uses Poetry for dependency management. Key commands:
 
-### Prerequisites
-- Python 3.12.8 (managed via pyenv)
-- Poetry for dependency management
-- Doppler for secrets management
+- `poetry install` - Install dependencies and create virtual environment
+- `poetry shell` - Activate virtual environment
+- `poetry add <package>` - Add new dependency
+- `poetry run <command>` - Run command in virtual environment
 
-### Initial Setup
-```bash
-# Set Python version
-pyenv local 3.12.8
+## Architecture Overview
 
-# Configure Poetry for in-project virtual environments
-poetry config virtualenvs.in-project true
+This is an **Agentic AI Journal Reflection System** built as a stateless MVP using FastAPI and the OpenAI Agents SDK. The system processes journal entries and provides philosophically-grounded reflection prompts and advice.
 
-# Install dependencies
-poetry install
+### Core Design Pattern
+- **Fan-out + merge orchestration**: Deterministic app-controlled workflow
+- **Multi-agent system**: Each philosophical school (Buddhism, Stoicism, Existentialism) is a separate agent
+- **Stateless**: No persistent memory or cross-session recall in MVP
 
-# Add doppler-env package for secrets injection
-poetry add doppler-env
+### Key Components
 
-# Enter virtual environment
-poetry shell
-```
+1. **Orchestrator** (`/reflect` endpoint)
+   - Validates input and attaches trace_id
+   - Coordinates all agent calls
+   - Handles errors and timeouts gracefully
 
-### Development Commands
-Since this is a planning/specification repository, there are no build, test, or lint commands yet. The actual implementation will follow the MVP specifications outlined in the documentation.
+2. **Journal Ingestor Agent**
+   - Extracts summary, themes (≤5), and mood from journal text
+   - Input: Raw markdown/text (300-1000 words typical)
+   - Output: Structured data for downstream agents
 
-## Key Specifications
+3. **Philosophy Coach Agents** (3 agents)
+   - `buddhist_coach`, `stoic_coach`, `existential_coach`
+   - Process ingested content in parallel
+   - Generate practical insights and actionable prompt suggestions
+
+4. **Response Composer** (deterministic code)
+   - Merges agent outputs intelligently
+   - Deduplicates similar prompts using Jaccard similarity
+   - Prioritizes by theme relevance and ensures balance (≤2 prompts per agent, max 5 total)
+   - Generates final advice (≤120 words)
 
 ### API Contract
-- **Endpoint**: `POST /reflect`
-- **Input**: Journal entry (≤ 1,500 tokens)
-- **Output**: Up to 5 philosophical reflections with questions and advice
-- **Performance Target**: p95 latency ≤ 2 seconds
 
-### Agent Response Format
-Each agent returns JSON with:
+**Endpoint**: `POST /reflect`
+
+**Request**:
 ```json
 {
-  "school": "Stoic|Buddhist|Existentialist",
-  "questions": ["question1", "question2"],
-  "advice": "short advice snippet (≤40 words)"
+  "journal_text": "string, required",
+  "question": "string, optional" 
 }
 ```
 
-### System Constraints
-- Stateless operation (no persistent storage)
-- Parallel agent execution via `asyncio.gather()` or `Runner.run_async()`
-- Maximum 5 reflections returned after deduplication
-- Rate limiting and cost guardrails for OpenAI API usage
+**Response**:
+```json
+{
+  "summary": "string (<=120 words)",
+  "themes": ["string", "..."], 
+  "mood": "calm|tense|stressed|sad|angry|energized|mixed",
+  "prompts": [
+    {
+      "text": "actionable reflection prompt",
+      "source": "buddhist|stoic|existential",
+      "rationale": "short why"
+    }
+  ],
+  "advice": "brief, concrete guidance (<=120 words)",
+  "warnings": ["string (optional)"],
+  "trace_id": "uuid"
+}
+```
 
-## Implementation Timeline
+## Configuration & Feature Flags
 
-Based on `mvp-specifications.md`, the 9-day development sprint:
-1. Day 1: Repo scaffold, FastAPI endpoint stub
-2. Day 2: Implement Stoic agent end-to-end
-3. Day 3: Clone Buddhist & Existentialist agents
-4. Day 4: Parallel execution + Mixer + dedup util
-5. Day 5: JSON schema & validation tests
-6. Day 6: Basic React UI (textarea + display)
-7. Day 7: Telemetry hooks (latency, tokens)
-8. Day 8: Internal QA with 20 sample entries
-9. Day 9: Deploy to staging; produce demo video
+The system uses environment-based configuration:
 
-## Future Extensions
+- `MODELS.INGESTOR` - Model for journal ingestion
+- `MODELS.COACH` - Model for philosophy coach agents  
+- `FEATURES.LLM_ORCHESTRATOR` - Toggle for LLM-based composer (default: off)
+- `LIMITS.MAX_PROMPTS` - Maximum prompts in response (default: 5)
+- `LIMITS.AGENT_TIMEOUT_SEC` - Per-agent timeout (default: 8s)
+- `LIMITS.GLOBAL_TIMEOUT_SEC` - Global request timeout (default: 25s)
+- `LOGGING.REDACT_INPUTS` - Redact journal content in logs (default: on)
 
-The architecture is designed to support:
-- Vector retrieval for grounded quotes from canonical texts
-- Long-term memory via external KV store
-- Additional philosophical personas
-- Crisis detection and safety classification
+## Error Handling Strategy
+
+- **Per-agent timeouts**: Failed agents are skipped, warnings added to response
+- **Graceful degradation**: If journal ingestor fails, return 502 with clear message
+- **Retries**: Single retry with jitter for 5xx model API errors
+- **Input validation**: 400 for empty or oversized journal text (>10k chars)
+
+## Performance Targets (MVP)
+
+- p50 latency: ≤5-7s
+- p95 latency: ≤15-20s  
+- Target availability: 99% during testing
+
+## Security Considerations
+
+- Raw journal text never stored in logs (only hashes and metadata)
+- Local deployment acceptable for MVP
+- Rate limiting per IP via simple middleware
+- HTTPS required for remote deployment
+
+## Testing Strategy
+
+Focus areas for testing:
+- Schema validation for all agent inputs/outputs
+- Deduplication logic edge cases
+- Prioritization and balancing algorithms
+- Timeout and failure scenarios
+- Load testing with 50-100 concurrent requests
+
+## Development Workflow
+
+Since this is early-stage development, expect:
+1. Iterative experimentation with agent prompts
+2. Schema evolution as requirements clarify  
+3. Performance tuning based on real usage patterns
+4. Potential migration from code-based to LLM-based orchestration via feature flags

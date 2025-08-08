@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONUNBUFFERED": "1",
+                "DOPPLER_ENV": "1",
+                "DOPPLER_ENV_COMMAND": "doppler secrets download --no-file --format env -c dev -p ai-journal"
+            },
+        }
+    ]
+}
