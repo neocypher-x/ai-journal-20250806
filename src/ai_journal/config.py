@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     debug: bool = False
+    log_level: str = "DEBUG"  # Can be DEBUG, INFO, WARNING, ERROR
     
     class Config:
         env_file = ".env"

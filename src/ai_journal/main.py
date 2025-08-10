@@ -11,6 +11,48 @@ from ai_journal.config import get_settings
 from ai_journal.models import ReflectionRequest, ReflectionResponse
 from ai_journal.service import ReflectionService
 
+# Configure logging for debug output
+def configure_logging(debug: bool = False, log_level: str = "INFO"):
+    """Configure application logging."""
+    # Use debug flag or log_level setting
+    if debug:
+        level = logging.DEBUG
+    else:
+        level = getattr(logging, log_level.upper(), logging.INFO)
+    
+    # Configure root logger
+    logging.basicConfig(
+        level=level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(),  # Console output
+        ],
+        force=True  # Override existing configuration
+    )
+    
+    # Set specific loggers for our app
+    app_loggers = [
+        "ai_journal",
+        "ai_journal.oracle", 
+        "ai_journal.agents",
+        "ai_journal.service",
+        "ai_journal.main",
+        "root"  # Also set root logger
+    ]
+    
+    for logger_name in app_loggers:
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(level)
+    
+    # Reduce noise from other libraries unless we're in debug mode
+    if level != logging.DEBUG:
+        logging.getLogger("httpx").setLevel(logging.WARNING)
+        logging.getLogger("openai").setLevel(logging.WARNING)
+        logging.getLogger("urllib3").setLevel(logging.WARNING)
+        logging.getLogger("uvicorn").setLevel(logging.INFO)
+    
+    logging.info(f"Logging configured at {logging.getLevelName(level)} level")
+
 
 # Global service instance
 reflection_service = None
@@ -23,6 +65,10 @@ async def lifespan(app: FastAPI):
     
     # Startup
     settings = get_settings()
+    
+    # Configure logging based on settings
+    configure_logging(debug=settings.debug, log_level=settings.log_level)
+    
     reflection_service = ReflectionService(
         openai_api_key=settings.openai_api_key,
         model=settings.model

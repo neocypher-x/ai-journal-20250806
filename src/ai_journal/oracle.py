@@ -286,7 +286,7 @@ List specific qualities, emphases, or insights that become softened or compromis
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            max_completion_tokens=600,
+            max_completion_tokens=5000,
             seed=1,
         )
         
