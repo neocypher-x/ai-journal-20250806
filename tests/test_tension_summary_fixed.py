@@ -173,7 +173,7 @@ class TestTensionSummary:
         call_args = self.mock_client.chat.completions.create.call_args
         
         assert call_args.kwargs['model'] == 'gpt-4o-mini'
-        assert call_args.kwargs['max_completion_tokens'] == 800
+        assert call_args.kwargs['max_completion_tokens'] == 5000
         assert len(call_args.kwargs['messages']) == 2
         assert call_args.kwargs['messages'][0]['role'] == 'system'
         assert call_args.kwargs['messages'][1]['role'] == 'user'

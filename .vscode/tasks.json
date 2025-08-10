@@ -1,0 +1,101 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run All Tests",
+            "type": "shell",
+            "command": "doppler",
+            "args": [
+                "-p", "ai-journal",
+                "-c", "dev",
+                "run", "--",
+                "poetry", "run", "pytest",
+                "tests/", "-v"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "Run Unit Tests (No API)",
+            "type": "shell",
+            "command": "poetry",
+            "args": [
+                "run", "pytest",
+                "tests/", "-k", "not slow", "-v"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "OPENAI_API_KEY": "dummy-test-key"
+                }
+            }
+        },
+        {
+            "label": "Run Current Test File",
+            "type": "shell",
+            "command": "doppler",
+            "args": [
+                "-p", "ai-journal",
+                "-c", "dev",
+                "run", "--",
+                "poetry", "run", "pytest",
+                "${file}", "-v", "-s"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "Run Tests (Collect Only)",
+            "type": "shell",
+            "command": "poetry",
+            "args": [
+                "run", "pytest",
+                "tests/", "--collect-only"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        }
+    ]
+}

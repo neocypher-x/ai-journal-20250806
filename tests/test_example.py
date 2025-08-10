@@ -6,8 +6,8 @@ Simple test script to verify the AI Journal system works.
 import asyncio
 import json
 import os
-from src.ai_journal.models import JournalEntry, ReflectionRequest
-from src.ai_journal.service import ReflectionService
+from ai_journal.models import JournalEntry, ReflectionRequest
+from ai_journal.service import ReflectionService
 
 
 async def test_reflection():
@@ -32,7 +32,7 @@ async def test_reflection():
     journal_entry = JournalEntry(text=journal_text.strip())
     request = ReflectionRequest(
         journal_entry=journal_entry,
-        enable_philosophy_scout=True
+        enable_scout=True
     )
     
     # Initialize service
@@ -59,8 +59,8 @@ async def test_reflection():
         print("-" * 40)
         
         for i, perspective in enumerate(reflection.perspectives.items, 1):
-            school_name = perspective.other_school_name if perspective.school.value == "other" else perspective.school.value.title()
-            print(f"\n{i}. {school_name} Perspective:")
+            framework_name = perspective.other_framework_name if perspective.framework.value == "other" else perspective.framework.value.title()
+            print(f"\n{i}. {framework_name} Perspective:")
             print(f"   Core Principle: {perspective.core_principle_invoked}")
             print(f"   Challenge: {perspective.challenge_framing}")
             print(f"   Experiment: {perspective.practical_experiment}")
@@ -72,16 +72,16 @@ async def test_reflection():
         
         print(f"\nAgreement Scorecard:")
         for agreement in reflection.prophecy.agreement_scorecard:
-            school_a_name = agreement.school_a.value.title()
-            school_b_name = agreement.school_b.value.title()
-            print(f"   {school_a_name} & {school_b_name}: {agreement.stance.value.upper()}")
+            framework_a_name = agreement.framework_a.value.title()
+            framework_b_name = agreement.framework_b.value.title()
+            print(f"   {framework_a_name} & {framework_b_name}: {agreement.stance.value.upper()}")
             if agreement.notes:
                 print(f"      Note: {agreement.notes}")
         
         print(f"\nTension Summary:")
         for tension in reflection.prophecy.tension_summary:
-            schools = [s.value.title() for s in tension.schools]
-            print(f"   Schools: {', '.join(schools)}")
+            frameworks = [f.value.title() for f in tension.frameworks]
+            print(f"   Frameworks: {', '.join(frameworks)}")
             print(f"   Tension: {tension.explanation}")
         
         print(f"\nSynthesis:")
