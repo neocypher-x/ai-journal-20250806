@@ -120,7 +120,7 @@ class TensionPoint(BaseModel):
     explanation: str = Field(
         description="Text citing core principles driving the tension.",
         min_length=1,
-        max_length=1200,
+        max_length=5000,
     )
 
 

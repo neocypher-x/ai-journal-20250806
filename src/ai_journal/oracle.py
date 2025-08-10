@@ -2,6 +2,7 @@
 Oracle meta-agent for cross-philosophical synthesis and analysis.
 """
 
+import logging
 from itertools import combinations
 from typing import List
 from openai import AsyncOpenAI
@@ -78,7 +79,15 @@ Respond with just the stance (AGREE, DIVERGE, or NUANCED) and an optional brief 
                 max_completion_tokens=150,
             )
             
-            result = response.choices[0].message.content.strip()
+            result = response.choices[0].message.content
+            logging.debug(f"Agreement scorecard response - raw content: '{result}'")
+            logging.debug(f"Agreement scorecard response - finish_reason: {response.choices[0].finish_reason}")
+            
+            if result:
+                result = result.strip()
+            else:
+                logging.warning("Empty response from OpenAI for agreement scorecard")
+                result = "NUANCED"
             lines = result.split('\n', 1)
             stance_str = lines[0].strip().upper()
             notes = lines[1].strip() if len(lines) > 1 else None
@@ -127,22 +136,37 @@ Analyze these philosophical perspectives and identify 1-3 key tension points whe
 For each tension, specify which frameworks are involved and explain the philosophical basis of their disagreement.
 """
         
+        logging.debug(f"Tension summary request - perspectives_text: {perspectives_text[:200]}...")
+        logging.debug(f"Tension summary request - system_prompt: {system_prompt[:100]}...")
+        logging.debug(f"Tension summary request - user_prompt: {user_prompt[:200]}...")
+        
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            max_completion_tokens=800
+            max_completion_tokens=5000,
         )
         
         # Parse the response into tension points
         # This is a simplified parsing - in production, you might want structured output
-        tension_text = response.choices[0].message.content.strip()
+        tension_text = response.choices[0].message.content
+        logging.debug(f"Tension summary response - raw content: '{tension_text}'")
+        logging.debug(f"Tension summary response - content length: {len(tension_text) if tension_text else 0}")
+        logging.debug(f"Tension summary response - finish_reason: {response.choices[0].finish_reason}")
+        
+        if tension_text:
+            tension_text = tension_text.strip()
+        else:
+            logging.warning("Empty response from OpenAI for tension summary")
+            tension_text = "No tensions identified between the frameworks."
         
         # For now, create a single tension point with all frameworks
         # In production, you'd parse the response more carefully
         frameworks = [p.framework for p in perspectives.items]
+        
+        logging.debug(f"Final tension_text: '{tension_text}'")
         
         return [TensionPoint(
             frameworks=frameworks,
@@ -188,7 +212,15 @@ Provide a coherent approach or principle that draws from all perspectives while 
             max_completion_tokens=1000,
         )
         
-        return response.choices[0].message.content.strip()
+        content = response.choices[0].message.content
+        logging.debug(f"Synthesis response - raw content: '{content}'")
+        logging.debug(f"Synthesis response - finish_reason: {response.choices[0].finish_reason}")
+        
+        if content:
+            return content.strip()
+        else:
+            logging.warning("Empty response from OpenAI for synthesis")
+            return "Unable to generate synthesis at this time."
     
     async def _generate_what_is_lost(self, perspectives: Perspectives) -> List[str]:
         """Generate explicit list of what philosophical richness is lost by blending."""
@@ -230,7 +262,15 @@ List specific qualities, emphases, or insights that become softened or compromis
         )
         
         # Parse into list items
-        result = response.choices[0].message.content.strip()
+        result = response.choices[0].message.content
+        logging.debug(f"What is lost response - raw content: '{result}'")
+        logging.debug(f"What is lost response - finish_reason: {response.choices[0].finish_reason}")
+        
+        if not result:
+            logging.warning("Empty response from OpenAI for what is lost")
+            return ["Some nuances may be lost in synthesis."]
+        
+        result = result.strip()
         lines = [line.strip() for line in result.split('\n') if line.strip()]
         
         # Clean up bullet points or numbered items
