@@ -109,6 +109,15 @@ class AgreementItem(BaseModel):
         return self
 
 
+class AgreementScorecardResponse(BaseModel):
+    """
+    Structured response for agreement scorecard generation.
+    """
+    agreements: List[AgreementItem] = Field(
+        description="List of pairwise framework agreement assessments"
+    )
+
+
 class TensionPoint(BaseModel):
     """
     Why frameworks diverge (or appear to).
@@ -157,6 +166,41 @@ class Reflection(BaseModel):
     journal_entry: JournalEntry
     perspectives: Perspectives
     prophecy: Prophecy
+
+
+# ---- Structured Output Models for Oracle Agent -----------------------------
+
+class TensionAnalysisResponse(BaseModel):
+    """
+    Structured response for tension analysis.
+    """
+    tension_points: List[TensionPoint] = Field(
+        description="List of identified philosophical tensions",
+        min_items=1,
+        max_items=3
+    )
+
+
+class SynthesisResponse(BaseModel):
+    """
+    Structured response for synthesis generation.
+    """
+    synthesis: str = Field(
+        description="Unified principle or plan respecting all perspectives",
+        min_length=1,
+        max_length=10000
+    )
+
+
+class WhatIsLostResponse(BaseModel):
+    """
+    Structured response for what is lost analysis.
+    """
+    lost_elements: List[str] = Field(
+        description="Specific qualities lost or diminished in synthesis",
+        min_items=1,
+        max_items=5
+    )
 
 
 # ---- API-facing request/response (MVP CLI/API) ------------------------------

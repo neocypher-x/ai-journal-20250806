@@ -52,7 +52,8 @@ Be authentic to the philosophical tradition while making it practically applicab
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            response_format=Perspective
+            response_format=Perspective,
+            seed=1,
         )
         
         perspective = response.choices[0].message.parsed
@@ -199,6 +200,7 @@ What philosophical framework, if any, would add valuable perspective here?
                 {"role": "user", "content": user_prompt}
             ],
             max_completion_tokens=100,
+            seed=1,
         )
         
         result = response.choices[0].message.content.strip()
@@ -238,7 +240,8 @@ Be authentic to {framework_name} while making it practically applicable.
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            response_format=Perspective
+            response_format=Perspective,
+            seed=1,
         )
         
         perspective = response.choices[0].message.parsed

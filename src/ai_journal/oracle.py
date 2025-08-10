@@ -7,7 +7,10 @@ from itertools import combinations
 from typing import List
 from openai import AsyncOpenAI
 
-from ai_journal.models import Perspective, Perspectives, Prophecy, Framework, AgreementItem, TensionPoint, AgreementStance
+from ai_journal.models import (
+    Perspective, Perspectives, Prophecy, Framework, AgreementItem, 
+    TensionPoint, AgreementStance, AgreementScorecardResponse
+)
 
 
 class OracleAgent:
@@ -40,71 +43,94 @@ class OracleAgent:
         )
     
     async def _generate_agreement_scorecard(self, perspectives: Perspectives) -> List[AgreementItem]:
-        """Generate pairwise agreement analysis between philosophical frameworks."""
+        """Generate pairwise agreement analysis between philosophical frameworks using structured output."""
         
         frameworks = [p.framework for p in perspectives.items]
-        agreement_items = []
         
-        # Generate all pairwise combinations
+        # Build comprehensive prompt with all perspective pairs
+        perspective_pairs = []
         for framework_a, framework_b in combinations(frameworks, 2):
             perspective_a = next(p for p in perspectives.items if p.framework == framework_a)
             perspective_b = next(p for p in perspectives.items if p.framework == framework_b)
             
-            system_prompt = f"""You are an Oracle analyzing philosophical perspectives. Compare two perspectives and determine their agreement level.
+            pair_text = f"""Pair: {framework_a.value} vs {framework_b.value}
 
-Perspective A ({framework_a}):
+{framework_a.value}:
 - Core principle: {perspective_a.core_principle_invoked}
 - Challenge: {perspective_a.challenge_framing}
 - Experiment: {perspective_a.practical_experiment}
 - Trap: {perspective_a.potential_trap}
 - Metaphor: {perspective_a.key_metaphor}
 
-Perspective B ({framework_b}):
+{framework_b.value}:
 - Core principle: {perspective_b.core_principle_invoked}
 - Challenge: {perspective_b.challenge_framing}
 - Experiment: {perspective_b.practical_experiment}
 - Trap: {perspective_b.potential_trap}
-- Metaphor: {perspective_b.key_metaphor}
+- Metaphor: {perspective_b.key_metaphor}"""
+            
+            perspective_pairs.append(pair_text)
+        
+        system_prompt = """You are an Oracle analyzing philosophical perspectives. For each pair of frameworks, determine their agreement level and provide a brief explanatory note.
 
-Determine the agreement stance:
+For each pair, assess the agreement stance:
 - AGREE: Frameworks fundamentally align in their approach and recommendations
-- DIVERGE: Frameworks have fundamentally different or conflicting approaches
+- DIVERGE: Frameworks have fundamentally different or conflicting approaches  
 - NUANCED: Frameworks have some alignment but differ in important ways
 
-Respond with just the stance (AGREE, DIVERGE, or NUANCED) and an optional brief note explaining the assessment."""
-            
-            response = await self.client.chat.completions.create(
+Provide your assessment in the structured format requested."""
+        
+        user_prompt = f"""Analyze these philosophical perspective pairs and determine their agreement levels:
+
+{chr(10).join(perspective_pairs)}
+
+For each pair, determine the stance (AGREE, DIVERGE, or NUANCED) and provide a brief note explaining your assessment."""
+        
+        logging.debug(f"Agreement scorecard request - user_prompt: {user_prompt[:300]}...")
+        
+        try:
+            response = await self.client.beta.chat.completions.parse(
                 model=self.model,
-                messages=[{"role": "system", "content": system_prompt}],
-                max_completion_tokens=150,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                response_format=AgreementScorecardResponse,
+                max_completion_tokens=5000,
+                seed=1,
             )
             
-            result = response.choices[0].message.content
-            logging.debug(f"Agreement scorecard response - raw content: '{result}'")
+            parsed_response = response.choices[0].message.parsed
+            logging.debug(f"Agreement scorecard structured response - agreements count: {len(parsed_response.agreements)}")
             logging.debug(f"Agreement scorecard response - finish_reason: {response.choices[0].finish_reason}")
             
-            if result:
-                result = result.strip()
+            if parsed_response and parsed_response.agreements:
+                return parsed_response.agreements
             else:
-                logging.warning("Empty response from OpenAI for agreement scorecard")
-                result = "NUANCED"
-            lines = result.split('\n', 1)
-            stance_str = lines[0].strip().upper()
-            notes = lines[1].strip() if len(lines) > 1 else None
-            
-            try:
-                stance = AgreementStance(stance_str.lower())
-            except ValueError:
-                stance = AgreementStance.NUANCED  # Default fallback
-            
-            agreement_items.append(AgreementItem(
-                framework_a=framework_a,
-                framework_b=framework_b,
-                stance=stance,
-                notes=notes
-            ))
-        
-        return agreement_items
+                logging.warning("Empty structured response from OpenAI for agreement scorecard")
+                # Fallback: create NUANCED agreements for all pairs
+                fallback_items = []
+                for framework_a, framework_b in combinations(frameworks, 2):
+                    fallback_items.append(AgreementItem(
+                        framework_a=framework_a,
+                        framework_b=framework_b,
+                        stance=AgreementStance.NUANCED,
+                        notes="Unable to determine agreement due to API response issue."
+                    ))
+                return fallback_items
+                
+        except Exception as e:
+            logging.exception(f"Failed to generate structured agreement scorecard: {e}")
+            # Fallback: create NUANCED agreements for all pairs
+            fallback_items = []
+            for framework_a, framework_b in combinations(frameworks, 2):
+                fallback_items.append(AgreementItem(
+                    framework_a=framework_a,
+                    framework_b=framework_b,
+                    stance=AgreementStance.NUANCED,
+                    notes="Fallback assessment due to processing error."
+                ))
+            return fallback_items
     
     async def _generate_tension_summary(self, perspectives: Perspectives) -> List[TensionPoint]:
         """Generate explanations of philosophical tensions and divergences."""
@@ -147,6 +173,7 @@ For each tension, specify which frameworks are involved and explain the philosop
                 {"role": "user", "content": user_prompt}
             ],
             max_completion_tokens=5000,
+            seed=1,
         )
         
         # Parse the response into tension points
@@ -210,6 +237,7 @@ Provide a coherent approach or principle that draws from all perspectives while 
                 {"role": "user", "content": user_prompt}
             ],
             max_completion_tokens=5000,
+            seed=1,
         )
         
         content = response.choices[0].message.content
@@ -259,6 +287,7 @@ List specific qualities, emphases, or insights that become softened or compromis
                 {"role": "user", "content": user_prompt}
             ],
             max_completion_tokens=600,
+            seed=1,
         )
         
         # Parse into list items

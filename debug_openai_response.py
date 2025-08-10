@@ -24,7 +24,8 @@ async def test_openai_response():
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Say 'Hello, this is a test response!'"}
             ],
-            max_completion_tokens=50
+            max_completion_tokens=50,
+            seed=1,
         )
         
         print("✅ Response received")
