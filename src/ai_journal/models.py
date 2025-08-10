@@ -120,7 +120,7 @@ class TensionPoint(BaseModel):
     explanation: str = Field(
         description="Text citing core principles driving the tension.",
         min_length=1,
-        max_length=5000,
+        max_length=10000,
     )
 
 
@@ -137,7 +137,7 @@ class Prophecy(BaseModel):
     synthesis: str = Field(
         description="Unified principle or plan respecting all perspectives.",
         min_length=1,
-        max_length=2000,
+        max_length=10000,
     )
     what_is_lost_by_blending: List[str] = Field(
         description="Explicit bullets of richness forfeited by compromise.",

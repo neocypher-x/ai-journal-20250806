@@ -209,7 +209,7 @@ Provide a coherent approach or principle that draws from all perspectives while 
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            max_completion_tokens=1000,
+            max_completion_tokens=5000,
         )
         
         content = response.choices[0].message.content
