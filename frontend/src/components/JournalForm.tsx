@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Sparkles } from 'lucide-react';
-import { ReflectionRequest } from '@/types/api';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Sparkles } from "lucide-react";
+import { ReflectionRequest } from "@/types/api";
 
 interface JournalFormProps {
   onSubmit: (request: ReflectionRequest) => Promise<void>;
@@ -10,21 +10,24 @@ interface JournalFormProps {
 }
 
 export function JournalForm({ onSubmit, isLoading }: JournalFormProps) {
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const [enableScout, setEnableScout] = useState(false);
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
-    
+
     await onSubmit({
       journal_entry: { text: text.trim() },
       enable_scout: enableScout,
     });
   };
 
-  const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
-  const isValidLength = wordCount >= 50 && wordCount <= 1000;
+  const wordCount = text
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word.length > 0).length;
+  const isValidLength = wordCount >= 1 && wordCount <= 1000;
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -35,14 +38,18 @@ export function JournalForm({ onSubmit, isLoading }: JournalFormProps) {
               Philosophical Journal
             </h1>
             <p className="text-muted-foreground text-balance leading-relaxed">
-              Share your thoughts, struggles, or reflections. Receive insights from Buddhist, Stoic, 
-              and Existentialist perspectives to illuminate new paths forward.
+              Share your thoughts, struggles, or reflections. Receive insights
+              from Buddhist, Stoic, and Existentialist perspectives to
+              illuminate new paths forward.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
-              <label htmlFor="journal-text" className="block text-sm font-medium text-foreground">
+              <label
+                htmlFor="journal-text"
+                className="block text-sm font-medium text-foreground"
+              >
                 Your Journal Entry
               </label>
               <Textarea
@@ -54,16 +61,19 @@ export function JournalForm({ onSubmit, isLoading }: JournalFormProps) {
                 disabled={isLoading}
               />
               <div className="flex items-center justify-between text-sm">
-                <span className={`transition-colors duration-200 ${
-                  isValidLength 
-                    ? 'text-muted-foreground' 
-                    : wordCount < 50 
-                      ? 'text-amber-600' 
-                      : 'text-red-600'
-                }`}>
-                  {wordCount} words {!isValidLength && wordCount > 0 && (
+                <span
+                  className={`transition-colors duration-200 ${
+                    isValidLength
+                      ? "text-muted-foreground"
+                      : wordCount < 1
+                      ? "text-amber-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  {wordCount} words{" "}
+                  {!isValidLength && wordCount > 0 && (
                     <span className="ml-1">
-                      {wordCount < 50 ? `(minimum 50)` : `(maximum 1000)`}
+                      {wordCount < 1 ? `(minimum 1)` : `(maximum 1000)`}
                     </span>
                   )}
                 </span>
@@ -84,10 +94,14 @@ export function JournalForm({ onSubmit, isLoading }: JournalFormProps) {
                 className="rounded border-border/60 text-primary focus:ring-primary/20 focus:ring-2 transition-colors duration-200"
                 disabled={isLoading}
               />
-              <label htmlFor="enable-scout" className="text-sm text-foreground select-none">
+              <label
+                htmlFor="enable-scout"
+                className="text-sm text-foreground select-none"
+              >
                 Enable Philosophy Scout
                 <span className="block text-muted-foreground text-xs mt-1">
-                  Discover additional philosophical schools that might offer relevant insights
+                  Discover additional philosophical schools that might offer
+                  relevant insights
                 </span>
               </label>
             </div>
