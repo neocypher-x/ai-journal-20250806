@@ -70,9 +70,22 @@
   * {
     @apply border-border;
   }
-  body {
+  html, body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    overscroll-behavior: none;
+    overflow-x: hidden;
+  }
+  html {
+    height: 100%;
+    position: fixed;
+    width: 100%;
+  }
+  body {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
   }
 }
 
