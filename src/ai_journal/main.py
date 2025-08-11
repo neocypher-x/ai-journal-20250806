@@ -116,8 +116,16 @@ async def health():
 
 
 @app.post("/api/reflections", response_model=ReflectionResponse)
-async def create_reflection(request: ReflectionRequest):
+async def create_reflection(request: ReflectionRequest, mock: bool = False):
     """Generate a philosophical reflection for a journal entry."""
+    
+    # Return mock data for rapid frontend testing
+    if mock:
+        from ai_journal.mock_data import generate_mock_reflection
+        return generate_mock_reflection(
+            journal_text=request.journal_entry.text,
+            enable_scout=request.enable_scout
+        )
     
     if not reflection_service:
         raise HTTPException(status_code=500, detail="Service not initialized")

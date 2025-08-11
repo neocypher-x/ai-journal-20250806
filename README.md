@@ -128,6 +128,19 @@ curl --request POST \
   }'
 ```
 
+**Mock Mode (for rapid frontend development):**
+```bash
+curl --request POST \
+  --url 'http://localhost:8000/api/reflections?mock=true' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "journal_entry": {
+      "text": "Your journal entry text here..."
+    },
+    "enable_scout": false
+  }'
+```
+
 **Health Check:**
 ```bash
 curl http://localhost:8000/api/health
@@ -156,6 +169,12 @@ curl http://localhost:8000/api/health
    npm run build
    cd ..
    ```
+
+4. **Rapid Frontend Testing with Mock Mode:**
+   - Add `?mock=true` to the URL: http://localhost:8000/?mock=true
+   - Or click the 🎭 MOCK toggle button in the top-right corner
+   - Mock mode returns instant hardcoded responses without making OpenAI API calls
+   - Perfect for UI development, styling, and testing user flows
 
 ### Running Tests
 

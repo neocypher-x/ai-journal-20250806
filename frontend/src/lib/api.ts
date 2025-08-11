@@ -9,8 +9,13 @@ export class ApiError extends Error {
   }
 }
 
-export async function generateReflection(request: ReflectionRequest): Promise<ReflectionResponse> {
-  const response = await fetch(`${API_BASE}/reflections`, {
+export async function generateReflection(request: ReflectionRequest, mock: boolean = false): Promise<ReflectionResponse> {
+  const url = new URL(`${API_BASE}/reflections`, window.location.origin);
+  if (mock) {
+    url.searchParams.set('mock', 'true');
+  }
+  
+  const response = await fetch(url.toString(), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
