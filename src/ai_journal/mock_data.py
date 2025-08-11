@@ -23,7 +23,7 @@ def generate_mock_reflection(journal_text: str, enable_scout: bool = False) -> R
     # Create mock journal entry
     journal_entry = JournalEntry(text=journal_text)
     
-    # Base perspectives - always include these three
+    # Base perspectives - always include these four
     buddhist = Perspective(
         framework=Framework.BUDDHISM,
         other_framework_name=None,
@@ -54,7 +54,17 @@ def generate_mock_reflection(journal_text: str, enable_scout: bool = False) -> R
         key_metaphor="Freedom is the chisel; your life is marble you carve into meaning."
     )
     
-    perspectives_list = [buddhist, stoic, existentialist]
+    neoadlerian = Perspective(
+        framework=Framework.NEOADLERIANISM,
+        other_framework_name=None,
+        core_principle_invoked="Task separation reveals you're taking responsibility for others' disappointment. The courage to be disliked means accepting that saying no may upset people, but their feelings about your boundaries are their task, not yours.",
+        challenge_framing="You lack the courage to be disliked—you're prioritizing others' approval over your own authentic contribution.",
+        practical_experiment="Practice separating your task (deciding what work to take on) from their task (their feelings about your decision). Say no to one request today with a clear explanation but without over-apologizing or managing their reaction.",
+        potential_trap="Using task separation to justify callousness or avoid genuine community feeling. The goal is healthy interdependence, not isolation.",
+        key_metaphor="A gardener tends their own plot, not the neighbor's reaction to the fence."
+    )
+    
+    perspectives_list = [buddhist, stoic, existentialist, neoadlerian]
     
     # Add mock scout perspective if enabled
     if enable_scout:
@@ -91,6 +101,24 @@ def generate_mock_reflection(journal_text: str, enable_scout: bool = False) -> R
             stance=AgreementStance.NUANCED,
             notes="Both foreground personal responsibility and control of one's responses. Stoicism emphasizes virtue, duty, and acceptance of a rational order; existentialism emphasizes freedom and meaning creation. They align in practical ethics of boundaries but diverge in metaphysical foundations and endpoints, yielding a nuanced agreement."
         ),
+        AgreementItem(
+            framework_a=Framework.BUDDHISM,
+            framework_b=Framework.NEOADLERIANISM,
+            stance=AgreementStance.AGREE,
+            notes="Both emphasize releasing attachment to others' opinions and reactions. Buddhism through non-attachment and compassion, NeoAdlerianism through task separation and the courage to be disliked."
+        ),
+        AgreementItem(
+            framework_a=Framework.EXISTENTIALISM,
+            framework_b=Framework.NEOADLERIANISM,
+            stance=AgreementStance.AGREE,
+            notes="Both champion individual courage against social pressure and authentic self-expression. Existentialism through radical freedom and responsibility, NeoAdlerianism through individual psychology and task separation."
+        ),
+        AgreementItem(
+            framework_a=Framework.STOICISM,
+            framework_b=Framework.NEOADLERIANISM,
+            stance=AgreementStance.NUANCED,
+            notes="Both emphasize personal responsibility and focusing on what you can control. Stoicism grounds this in virtue ethics and rational duty, while NeoAdlerianism focuses on individual purpose and social contribution. They differ in their approach to community obligations."
+        ),
     ]
     
     # Add scout agreements if enabled
@@ -112,28 +140,30 @@ def generate_mock_reflection(journal_text: str, enable_scout: bool = False) -> R
             )
         )
     
-    frameworks_in_tension = [Framework.BUDDHISM, Framework.STOICISM, Framework.EXISTENTIALISM]
+    frameworks_in_tension = [Framework.BUDDHISM, Framework.STOICISM, Framework.EXISTENTIALISM, Framework.NEOADLERIANISM]
     if enable_scout:
         frameworks_in_tension.append(Framework.OTHER)
     
-    tension_explanation = """Below are 3 substantive tension points where the three frameworks diverge in their foundational assumptions, methods, or goals. For each, I spell out the frameworks involved, the core philosophical principles driving the disagreement, and why the differences matter in practical terms.
+    tension_explanation = """Below are 4 substantive tension points where the four core frameworks diverge in their foundational assumptions, methods, or goals. For each, I spell out the frameworks involved, the core philosophical principles driving the disagreement, and why the differences matter in practical terms.
 
-Tension Point 1: The status and purpose of boundary-setting in moral life (Buddhism vs. Stoicism vs. Existentialism)
+Tension Point 1: The status and purpose of boundary-setting in moral life (Buddhism vs. Stoicism vs. Existentialism vs. NeoAdlerianism)
 
 - Frameworks involved:
   - Buddhism
   - Stoicism
   - Existentialism
+  - NeoAdlerianism
 
 - Core principles driving the disagreement:
   - Buddhism: Boundaries arise from recognizing craving (tanha) and its role in sustaining suffering. The ethical aim is to minimize suffering through right intention, right effort, right speech, and right action; compassionate boundaries are virtuous insofar as they reduce dukkha and align with the Middle Way.
   - Stoicism: Boundaries are an application of the Dichotomy of Control. You cannot control others' demands; you can control your assent and actions. Virtue requires aligning responses with duty and reason, not bending to every external pressure. Boundaries are a rational management of what is genuinely within your power.
   - Existentialism: Boundaries are acts of authentic self-authorship. Existence precedes essence, so you author meaning through choices. Saying yes to things you don't want is often bad faith unless you deliberately choose the boundary as a free, responsible act. Boundaries are about conscious creation of a life you acknowledge as yours.
+  - NeoAdlerianism: Boundaries are applications of task separation—clarifying what is your task versus others' tasks. The courage to be disliked means accepting that your boundaries may disappoint others, but managing their feelings about your choices is their task, not yours. Boundaries serve individual purpose and social contribution.
 
 - Why these differences matter practically:
   - They lead to different justifications for the same practical move (declining a request). Buddhism would justify a boundary as a means to reduce suffering and cultivate right action; Stoicism would justify it as safeguarding virtue and rational freedom within the realm of control; Existentialism would justify it as an authentic assertion of personal meaning, even if uncomfortable for others.
-  - The risk profiles differ: Buddhism worries about becoming driven by fear or resentment masked as generosity; Stoicism worries about becoming rigid or cowardly in the face of real duties; Existentialism worries about acting in bad faith if boundaries are chosen reflexively or to avoid responsibility.
-  - In practice, this translates into how you phrase a decline (compassionate and non-harming vs. firm and duty-centered vs. honest about authorship and costs) and how you calibrate the boundary's breadth (limiting burnout vs. preserving relational trust vs. maintaining existential integrity).
+  - The risk profiles differ: Buddhism worries about becoming driven by fear or resentment masked as generosity; Stoicism worries about becoming rigid or cowardly in the face of real duties; Existentialism worries about acting in bad faith if boundaries are chosen reflexively or to avoid responsibility; NeoAdlerianism worries about using task separation to justify callousness or abandoning genuine community feeling.
+  - In practice, this translates into how you phrase a decline (compassionate and non-harming vs. firm and duty-centered vs. honest about authorship and costs vs. clear task separation) and how you calibrate the boundary's breadth (limiting burnout vs. preserving relational trust vs. maintaining existential integrity vs. enabling authentic social contribution).
 
 Tension Point 2: Freedom and agency under different metaphysical pictures (Buddhism vs. Stoicism vs. Existentialism)
 

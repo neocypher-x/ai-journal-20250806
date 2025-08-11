@@ -17,6 +17,7 @@ class Framework(StrEnum):
     BUDDHISM = auto()
     STOICISM = auto()
     EXISTENTIALISM = auto()
+    NEOADLERIANISM = auto()
     OTHER = auto()  # used when proposed by Scout or user-defined
 
 class AgreementStance(StrEnum):
@@ -38,7 +39,7 @@ class Perspective(BaseModel):
     other_framework_name: Optional[str] = Field(
         default=None,
         description="Name of the proposed/extra framework when framework=OTHER.",
-        examples=["Confucianism", "ACT", "Taoism", "Adlerian Psychology"],
+        examples=["Confucianism", "ACT", "Taoism", "CBT"],
     )
 
     # Output elements (MVP structure)
@@ -149,6 +150,7 @@ class Prophecy(BaseModel):
         examples=[[
             "Buddhist emphasis on impermanence is softened.",
             "Existential urgency reduced in favor of Stoic steadiness.",
+            "NeoAdlerian task separation loses its absolutist clarity.",
         ]],
     )
 
@@ -214,7 +216,7 @@ Status: 200 OK
         {
           "framework": "BUDDHISM",
           "core_principle_invoked": "Craving and aversion drive reactivity; non-grasping restores agency.",
-          "challenge_framing": "You’re clinging to approval.",
+          "challenge_framing": "You're clinging to approval.",
           "practical_experiment": "Say 'let me get back to you' once today; observe the discomfort without resisting.",
           "potential_trap": "Confusing non-attachment with passivity.",
           "key_metaphor": "Leaves floating by on a stream."
@@ -222,24 +224,44 @@ Status: 200 OK
         {
           "framework": "STOICISM",
           "core_principle_invoked": "Dichotomy of control clarifies what deserves assent.",
-          "challenge_framing": "You’re outsourcing your judgments.",
+          "challenge_framing": "You're outsourcing your judgments.",
           "practical_experiment": "Draft a 'no' template aligning with your roles; use it once.",
           "potential_trap": "Turning 'virtue' into performative rigidity.",
           "key_metaphor": "The archer focuses on aim, not the wind."
+        },
+        {
+          "framework": "EXISTENTIALISM",
+          "core_principle_invoked": "Authenticity requires choosing against the crowd's expectations.",
+          "challenge_framing": "You're fleeing into bad faith through busyness.",
+          "practical_experiment": "Identify one commitment that betrays your values; schedule its termination.",
+          "potential_trap": "Mistaking rebellion for authenticity.",
+          "key_metaphor": "The condemned man suddenly sees his chains."
+        },
+        {
+          "framework": "NEOADLERIANISM",
+          "core_principle_invoked": "Task separation reveals you're taking responsibility for others' disappointment.",
+          "challenge_framing": "You lack the courage to be disliked.",
+          "practical_experiment": "Practice separating your task (deciding) from their task (their feelings about it).",
+          "potential_trap": "Using task separation to justify callousness or avoid community feeling.",
+          "key_metaphor": "A gardener tends their plot, not the neighbor's reaction to it."
         }
       ]
     },
     "prophecy": {
       "agreement_scorecard": [
-        { "framework_a": "BUDDHISM", "framework_b": "STOICISM", "stance": "NUANCED", "notes": "Both reduce reactivity; differ on metaphysics." }
+        { "framework_a": "BUDDHISM", "framework_b": "STOICISM", "stance": "NUANCED", "notes": "Both reduce reactivity; differ on metaphysics." },
+        { "framework_a": "BUDDHISM", "framework_b": "NEOADLERIANISM", "stance": "AGREE", "notes": "Both emphasize releasing attachment to others' opinions." },
+        { "framework_a": "EXISTENTIALISM", "framework_b": "NEOADLERIANISM", "stance": "AGREE", "notes": "Both champion individual courage against social pressure." }
       ],
       "tension_summary": [
-        { "frameworks": ["BUDDHISM", "EXISTENTIALISM"], "explanation": "Non-self vs. authorship of meaning." }
+        { "frameworks": ["BUDDHISM", "EXISTENTIALISM"], "explanation": "Non-self vs. authorship of meaning." },
+        { "frameworks": ["STOICISM", "NEOADLERIANISM"], "explanation": "Virtue ethics vs. teleological purpose; duty vs. contribution." }
       ],
-      "synthesis": "Practice present-moment non-grasping while committing to values-aligned boundaries.",
+      "synthesis": "Practice present-moment non-grasping while courageously separating your tasks from others', committing to values-aligned boundaries that serve both authenticity and community.",
       "what_is_lost_by_blending": [
         "Existential urgency may be softened.",
-        "Buddhist deconstruction may feel abstract without action."
+        "Buddhist deconstruction may feel abstract without action.",
+        "NeoAdlerian emphasis on social interest could override Stoic self-sufficiency."
       ]
     }
   }

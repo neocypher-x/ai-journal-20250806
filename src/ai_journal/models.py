@@ -11,6 +11,7 @@ class Framework(StrEnum):
     BUDDHISM = auto()
     STOICISM = auto()
     EXISTENTIALISM = auto()
+    NEOADLERIANISM = auto()
     OTHER = auto()  # used when proposed by Scout or user-defined
 
 

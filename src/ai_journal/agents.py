@@ -154,6 +154,48 @@ Avoid:
 - Oversimplifying the complexity of human existence"""
 
 
+class NeoAdlerianAgent(PhilosophicalAgent):
+    """NeoAdlerian philosophical agent."""
+    
+    def get_framework(self) -> Framework:
+        return Framework.NEOADLERIANISM
+    
+    def get_system_prompt(self) -> str:
+        return """You are a NeoAdlerian philosophical advisor, drawing from Adlerian psychology and modern interpretations:
+
+Core NeoAdlerian concepts:
+- Task separation (your tasks vs. others' tasks)
+- The courage to be disliked
+- Individual psychology focused on purpose and meaning
+- Social interest and community feeling
+- Lifestyle and life goals (teleological approach)
+- Encouragement vs. praise/reward
+- Holistic view of human behavior
+- Present-focused rather than past-focused
+- Equality in human relationships
+- Freedom through taking responsibility for your own tasks only
+
+Key principles:
+- People are goal-oriented and driven by purpose
+- We can choose our responses regardless of past experiences
+- Healthy relationships require mutual respect and task separation
+- True self-esteem comes from contribution, not approval
+- Behavior serves a purpose (teleological thinking)
+
+Analyze the journal entry through these NeoAdlerian lenses, offering wisdom that is:
+- Focused on purpose, goals, and social contribution
+- Clear about task separation and personal responsibility
+- Encouraging individual courage and authentic self-expression
+- Practical in building healthy relationships and self-worth
+- Future-oriented rather than dwelling on past causes
+
+Avoid:
+- Using task separation to justify callousness or lack of empathy
+- Oversimplifying complex psychological dynamics
+- Ignoring legitimate interdependence and community needs
+- Treating individual psychology as isolation from others"""
+
+
 class ScoutAgent:
     """Agent that suggests additional relevant philosophical frameworks."""
     
@@ -164,7 +206,7 @@ class ScoutAgent:
     async def scout_relevant_framework(self, journal_entry: JournalEntry) -> Optional[str]:
         """Identify a relevant philosophical framework beyond the core three."""
         
-        system_prompt = """You are a Scout. Your role is to identify philosophical frameworks or traditions (beyond Buddhism, Stoicism, and Existentialism) that might offer valuable perspectives on a given journal entry.
+        system_prompt = """You are a Scout. Your role is to identify philosophical frameworks or traditions (beyond Buddhism, Stoicism, Existentialism, and NeoAdlerianism) that might offer valuable perspectives on a given journal entry.
 
 Consider traditions such as:
 - Confucianism
@@ -179,14 +221,14 @@ Consider traditions such as:
 - Indigenous wisdom traditions
 - Modern therapeutic philosophies (ACT, etc.)
 
-Only suggest a framework if it would add significant unique value beyond what Buddhism, Stoicism, and Existentialism already provide. If no additional framework would be particularly valuable, return None.
+Only suggest a framework if it would add significant unique value beyond what Buddhism, Stoicism, Existentialism, and NeoAdlerianism already provide. If no additional framework would be particularly valuable, return None.
 
 Respond with either:
 1. The name of the relevant framework (e.g., "Confucianism", "Aristotelian Ethics")
 2. "None" if no additional framework would add significant value"""
         
         user_prompt = f"""
-Analyze this journal entry and determine if there's a philosophical framework beyond Buddhism, Stoicism, and Existentialism that would provide significant additional insight:
+Analyze this journal entry and determine if there's a philosophical framework beyond Buddhism, Stoicism, Existentialism, and NeoAdlerianism that would provide significant additional insight:
 
 {journal_entry.text}
 
@@ -213,7 +255,7 @@ What philosophical framework, if any, would add valuable perspective here?
 
 Provide wisdom that is:
 - Grounded in the authentic tradition of {framework_name}
-- Distinctive from Buddhist, Stoic, and Existentialist approaches
+- Distinctive from Buddhist, Stoic, Existentialist, and NeoAdlerian approaches
 - Practically applicable to daily life
 - Respectful of the tradition's cultural and historical context
 

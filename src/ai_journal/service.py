@@ -7,7 +7,7 @@ from typing import List
 from openai import AsyncOpenAI
 
 from ai_journal.models import JournalEntry, Reflection, Perspectives, ReflectionRequest
-from ai_journal.agents import BuddhistAgent, StoicAgent, ExistentialistAgent, ScoutAgent
+from ai_journal.agents import BuddhistAgent, StoicAgent, ExistentialistAgent, NeoAdlerianAgent, ScoutAgent
 from ai_journal.oracle import OracleAgent
 
 
@@ -22,6 +22,7 @@ class ReflectionService:
         self.buddhist_agent = BuddhistAgent(self.client, self.model)
         self.stoic_agent = StoicAgent(self.client, self.model)
         self.existentialist_agent = ExistentialistAgent(self.client, self.model)
+        self.neoadlerian_agent = NeoAdlerianAgent(self.client, self.model)
         self.scout_agent = ScoutAgent(self.client, self.model)
         self.oracle_agent = OracleAgent(self.client, self.model)
     
@@ -34,7 +35,8 @@ class ReflectionService:
         perspective_tasks = [
             self.buddhist_agent.generate_perspective(journal_entry),
             self.stoic_agent.generate_perspective(journal_entry),
-            self.existentialist_agent.generate_perspective(journal_entry)
+            self.existentialist_agent.generate_perspective(journal_entry),
+            self.neoadlerian_agent.generate_perspective(journal_entry)
         ]
         
         core_perspectives = await asyncio.gather(*perspective_tasks)
