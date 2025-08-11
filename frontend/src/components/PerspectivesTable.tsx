@@ -9,10 +9,10 @@ interface PerspectivesTableProps {
 export function PerspectivesTable({ perspectives }: PerspectivesTableProps) {
   return (
     <div className="w-full overflow-x-auto">
-      <table className="w-full border-collapse min-w-[800px]">
-        <thead className="bg-gradient-to-r from-gray-50/50 to-gray-100/50">
+      <table className="w-full border-collapse min-w-[800px] overflow-hidden">
+        <thead className="gradient-header">
           <tr>
-            <th className="w-[180px] text-left align-top p-4 font-medium text-foreground sticky left-0 bg-gray-50/90 backdrop-blur-sm">
+            <th className="w-[180px] text-left align-top p-4 font-medium text-foreground sticky left-0 bg-gradient-to-r from-blue-50/60 to-cyan-50/70 backdrop-blur-sm">
               Aspect
             </th>
             {perspectives.items.map((perspective, index) => {
@@ -32,14 +32,14 @@ export function PerspectivesTable({ perspectives }: PerspectivesTableProps) {
         <tbody>
           {/* Core Principle Row */}
           <tr className="border-t border-border/20">
-            <td className="p-4 align-top font-medium text-sm text-foreground sticky left-0 bg-white/90 backdrop-blur-sm">
+            <td className="p-4 align-top font-medium text-sm text-foreground sticky left-0 bg-gradient-to-r from-blue-50/40 to-cyan-50/50 backdrop-blur-sm">
               <div className="flex items-start space-x-2">
                 <Lightbulb className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <span>Core Principle</span>
               </div>
             </td>
             {perspectives.items.map((perspective, index) => (
-              <td key={index} className="p-4 align-top text-sm text-muted-foreground leading-relaxed">
+              <td key={index} className="p-4 align-top text-sm text-muted-foreground leading-relaxed bg-gradient-to-br from-white/60 to-blue-50/40 backdrop-blur-sm">
                 {perspective.core_principle_invoked}
               </td>
             ))}
@@ -47,14 +47,14 @@ export function PerspectivesTable({ perspectives }: PerspectivesTableProps) {
 
           {/* Challenge Row */}
           <tr className="border-t border-border/20">
-            <td className="p-4 align-top font-medium text-sm text-foreground sticky left-0 bg-white/90 backdrop-blur-sm">
+            <td className="p-4 align-top font-medium text-sm text-foreground sticky left-0 bg-gradient-to-r from-blue-50/40 to-cyan-50/50 backdrop-blur-sm">
               <div className="flex items-start space-x-2">
                 <Target className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                 <span>Challenge</span>
               </div>
             </td>
             {perspectives.items.map((perspective, index) => (
-              <td key={index} className="p-4 align-top text-sm text-muted-foreground leading-relaxed font-medium">
+              <td key={index} className="p-4 align-top text-sm text-muted-foreground leading-relaxed font-medium bg-gradient-to-br from-white/60 to-green-50/40 backdrop-blur-sm">
                 "{perspective.challenge_framing}"
               </td>
             ))}
@@ -62,14 +62,14 @@ export function PerspectivesTable({ perspectives }: PerspectivesTableProps) {
 
           {/* Practical Experiment Row */}
           <tr className="border-t border-border/20">
-            <td className="p-4 align-top font-medium text-sm text-foreground sticky left-0 bg-white/90 backdrop-blur-sm">
+            <td className="p-4 align-top font-medium text-sm text-foreground sticky left-0 bg-gradient-to-r from-blue-50/40 to-cyan-50/50 backdrop-blur-sm">
               <div className="flex items-start space-x-2">
                 <div className="h-4 w-4 bg-blue-600 rounded-full mt-1 flex-shrink-0" />
                 <span>Practical Experiment</span>
               </div>
             </td>
             {perspectives.items.map((perspective, index) => (
-              <td key={index} className="p-4 align-top text-sm text-muted-foreground leading-relaxed">
+              <td key={index} className="p-4 align-top text-sm text-muted-foreground leading-relaxed bg-gradient-to-br from-white/60 to-cyan-50/40 backdrop-blur-sm">
                 {perspective.practical_experiment}
               </td>
             ))}
@@ -77,14 +77,14 @@ export function PerspectivesTable({ perspectives }: PerspectivesTableProps) {
 
           {/* Potential Trap Row */}
           <tr className="border-t border-border/20">
-            <td className="p-4 align-top font-medium text-sm text-foreground sticky left-0 bg-white/90 backdrop-blur-sm">
+            <td className="p-4 align-top font-medium text-sm text-foreground sticky left-0 bg-gradient-to-r from-blue-50/40 to-cyan-50/50 backdrop-blur-sm">
               <div className="flex items-start space-x-2">
                 <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
                 <span>Potential Trap</span>
               </div>
             </td>
             {perspectives.items.map((perspective, index) => (
-              <td key={index} className="p-4 align-top text-sm text-muted-foreground leading-relaxed">
+              <td key={index} className="p-4 align-top text-sm text-muted-foreground leading-relaxed bg-gradient-to-br from-white/60 to-orange-50/40 backdrop-blur-sm">
                 {perspective.potential_trap}
               </td>
             ))}
@@ -92,14 +92,14 @@ export function PerspectivesTable({ perspectives }: PerspectivesTableProps) {
 
           {/* Key Metaphor Row */}
           <tr className="border-t border-border/20">
-            <td className="p-4 align-top font-medium text-sm text-foreground sticky left-0 bg-white/90 backdrop-blur-sm">
+            <td className="p-4 align-top font-medium text-sm text-foreground sticky left-0 bg-gradient-to-r from-blue-50/40 to-cyan-50/50 backdrop-blur-sm">
               <div className="flex items-start space-x-2">
                 <Quote className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
                 <span>Key Metaphor</span>
               </div>
             </td>
             {perspectives.items.map((perspective, index) => (
-              <td key={index} className="p-4 align-top text-sm text-muted-foreground leading-relaxed italic">
+              <td key={index} className="p-4 align-top text-sm text-muted-foreground leading-relaxed italic bg-gradient-to-br from-white/60 to-purple-50/40 backdrop-blur-sm">
                 {perspective.key_metaphor}
               </td>
             ))}
