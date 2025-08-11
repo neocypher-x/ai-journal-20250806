@@ -27,41 +27,41 @@ def generate_mock_reflection(journal_text: str, enable_scout: bool = False) -> R
     buddhist = Perspective(
         framework=Framework.BUDDHISM,
         other_framework_name=None,
-        core_principle_invoked="Craving (tanha) and aversion drive the pattern of saying yes to tasks you don't want, and through dependent origination this leads to ongoing suffering (dukkha). The Buddhist path offers a corrective: cultivate right intention, right effort, right speech, and right action to respond with truthful, compassionate boundaries that reduce suffering.",
-        challenge_framing="Generosity without boundaries isn't virtue—it's fear wearing a halo.",
-        practical_experiment="Pause for three mindful breaths before replying to any new work request today, then respond with a clear boundary (e.g., 'I can take this on starting next week' or 'I can help in X other way').",
-        potential_trap="Mindfulness can be misused as resignation or cynicism; the Middle Way requires wise engagement—avoid both avoidance of duties and forcing yourself beyond your limits.",
-        key_metaphor="Mind like a garden: prune craving with mindful intention so the fruits of work can truly ripen."
+        core_principle_invoked="From a Buddhist view, this pattern arises from craving (the desire to please) and aversion (fear of discomfort). By applying Right Intention and mindful effort as part of the Eightfold Path, you can align your commitments with true priorities and reduce dukkha.",
+        challenge_framing="Your calendar is a mirror of your mind: saying yes to everything is saying no to your own peace.",
+        practical_experiment="Decline one nonessential request today with a brief, compassionate explanation and offer an alternative timeline.",
+        potential_trap="Watch for rigidity or avoidance masquerading as wisdom: boundary-setting should be compassionate and wise, not a weapon or a bypass for responsibility.",
+        key_metaphor="Chop wood, carry water—mindful work in service of clarity, not compulsion."
     )
     
     stoic = Perspective(
         framework=Framework.STOICISM,
         other_framework_name=None,
-        core_principle_invoked="The Dichotomy of Control applies here: you cannot control others' demands, only your own assent and actions. Virtue demands aligning choices with duty, distinguishing what is a true good from mere preference.",
-        challenge_framing="Saying yes to every request is not generosity; it's surrendering your agency to external demands and drifting away from virtue.",
-        practical_experiment="Action: For the next 24 hours, before committing to a new task, pause for 60 seconds to reflect and then use a boundary script: 'I appreciate the offer; I can't take this on right now. If it's important, we can revisit in 24 hours after I review my priorities.' Apply it at least once today.",
-        potential_trap="Used improperly, boundary-setting can become rigidity or avoidance of responsibility. Ensure you still act courageously and justly when help is truly needed, and that you aren't shrinking from duties out of fear of conflict.",
-        key_metaphor="Let your assent be a gate, not a revolving door."
+        core_principle_invoked="The Dichotomy of Control—you can govern your own assent and choices, but not others' demands or outcomes. Since virtue is the only true good, align your 'yes' with actions that honor your rational nature and decline what does not.",
+        challenge_framing="Your 'yes' may be a fear-driven habit; reframe by asking: what would a wise person consent to in this moment?",
+        practical_experiment="In the next 24 hours, pause before any non-essential request and respond with a brief, courteous boundaries script: 'I can't take this on today due to other commitments. If it's important, we can revisit after we prioritize current duties, or I can suggest someone else who can help.'",
+        potential_trap="Risk of rigidity or shirking necessary duties. Use discernment to ensure boundary-setting serves justice, temperance, and the common good, not mere self-denial or avoidance.",
+        key_metaphor="The inner citadel gates—let only virtue pass; keep the rest outside."
     )
     
     existentialist = Perspective(
         framework=Framework.EXISTENTIALISM,
         other_framework_name=None,
-        core_principle_invoked="Existence precedes essence: you are free to create meaning, and with that freedom comes responsibility for every choice. Saying yes to what you don't want is often bad faith—you are authoring your life, or surrendering it to someone else.",
-        challenge_framing="If you keep saying yes to what you don't want, you're authoring a life you didn't choose; reclaim your freedom by naming the cost of each acquiescence.",
-        practical_experiment="Today, decline one non-essential task you routinely agree to, with a brief, honest note explaining your boundary or proposing a concrete alternative time, then journal how it felt before and after.",
-        potential_trap="Misuse your freedom as impulsive neglect of duties; boundaries that punish others or sever all accountability can backfire—authentic living requires honesty about both your desires and responsibilities.",
-        key_metaphor="Freedom is the chisel; your life is marble you carve into meaning."
+        core_principle_invoked="Existence precedes essence: you create meaning through your choices, not by fulfilling a predefined role. Your radical freedom carries responsibility: saying yes to work you don't want is a small act of bad faith that forfeits your authenticity.",
+        challenge_framing="Saying no to what you don't want is not denial; it's the first explicit act of self-ownership.",
+        practical_experiment="Today, pick one task you routinely say yes to but hate, and send a concise boundary statement to the person who assigns it, requesting a change in scope or deadline or a renegotiation of responsibilities.",
+        potential_trap="Boundaries must be grounded in care and awareness of consequences; avoid using authenticity as an excuse to shirk obligations or to punish others; ensure your actions consider the impact on colleagues and the system.",
+        key_metaphor="Bad faith signs other people's names on your to-do list; authenticity signs your own."
     )
     
     neoadlerian = Perspective(
         framework=Framework.NEOADLERIANISM,
         other_framework_name=None,
-        core_principle_invoked="Task separation reveals you're taking responsibility for others' disappointment. The courage to be disliked means accepting that saying no may upset people, but their feelings about your boundaries are their task, not yours.",
-        challenge_framing="You lack the courage to be disliked—you're prioritizing others' approval over your own authentic contribution.",
-        practical_experiment="Practice separating your task (deciding what work to take on) from their task (their feelings about your decision). Say no to one request today with a clear explanation but without over-apologizing or managing their reaction.",
-        potential_trap="Using task separation to justify callousness or avoid genuine community feeling. The goal is healthy interdependence, not isolation.",
-        key_metaphor="A gardener tends their own plot, not the neighbor's reaction to the fence."
+        core_principle_invoked="You are responsible for your own tasks and responses; behavior is teleological and aimed at a meaningful, socially constructive goal. By separating your tasks from others' and aligning actions with a clear purpose, you create room to contribute while preserving your own energy and growth.",
+        challenge_framing="Every unwanted yes is a quiet no to your own life. The real question is: what is mine to own, and what am I willing to let go of for a meaningful purpose?",
+        practical_experiment="Within the next 24 hours, decline one non-essential request using a brief boundary script: 'I can't take that on right now due to my current commitments; can we revisit later or could it be delegated?' Then note how this affects your sense of control and the other person's response.",
+        potential_trap="Setting boundaries can be misused as coldness or avoidance of collaboration. Be sure to accompany your boundaries with empathy, clear communication, and a willingness to contribute where your tasks truly lie and where you can offer meaningful social value.",
+        key_metaphor="Every yes you give plants someone else's flag on your time."
     )
     
     perspectives_list = [buddhist, stoic, existentialist, neoadlerian]
@@ -86,38 +86,38 @@ def generate_mock_reflection(journal_text: str, enable_scout: bool = False) -> R
         AgreementItem(
             framework_a=Framework.BUDDHISM,
             framework_b=Framework.STOICISM,
-            stance=AgreementStance.NUANCED,
-            notes="Both systems advocate prudent boundary-setting and avoiding unbounded conformity to external demands: Buddhism emphasizes reducing suffering via mindful intention (craving/aversion) and the Middle Way, while Stoicism emphasizes the Dichotomy of Control and virtuous assent. Their differences are metaphysical and normative rather than practical conflict, yielding a nuanced alignment."
+            stance=AgreementStance.AGREE,
+            notes="Both advocate mindful boundary-setting to reduce unnecessary commitments and suffering, and to align actions with higher priorities/virtues. Differences lie in ultimate aims (dukkha/nirvana vs virtue/nature) rather than in practical stance toward boundaries."
         ),
         AgreementItem(
             framework_a=Framework.BUDDHISM,
             framework_b=Framework.EXISTENTIALISM,
             stance=AgreementStance.NUANCED,
-            notes="Both challenge unreflective conformity and favor authentic boundary-setting. Buddhism grounds ethics in compassion and suffering relief; existentialism centers on radical freedom and meaning-making. They align on the value of deliberate response to choice, but differ in ultimate aims and metaphysical commitments, making the agreement nuanced."
-        ),
-        AgreementItem(
-            framework_a=Framework.EXISTENTIALISM,
-            framework_b=Framework.STOICISM,
-            stance=AgreementStance.NUANCED,
-            notes="Both foreground personal responsibility and control of one's responses. Stoicism emphasizes virtue, duty, and acceptance of a rational order; existentialism emphasizes freedom and meaning creation. They align in practical ethics of boundaries but diverge in metaphysical foundations and endpoints, yielding a nuanced agreement."
+            notes="Both prize intentional choice and personal responsibility, but Buddhism emphasizes reducing craving and compassionate harmony (end of suffering) while existentialism centers on authentic meaning-making and self-authored essence. Boundary-setting can align, yet their ultimate teloi differ."
         ),
         AgreementItem(
             framework_a=Framework.BUDDHISM,
             framework_b=Framework.NEOADLERIANISM,
             stance=AgreementStance.AGREE,
-            notes="Both emphasize releasing attachment to others' opinions and reactions. Buddhism through non-attachment and compassion, NeoAdlerianism through task separation and the courage to be disliked."
+            notes="Both stress personal responsibility for one's time and actions and advocate boundaries to protect meaningful priorities. Buddhism adds compassion and interdependence; Neoadlerianism emphasizes practical meaning and social contribution—these complement rather than conflict."
+        ),
+        AgreementItem(
+            framework_a=Framework.EXISTENTIALISM,
+            framework_b=Framework.STOICISM,
+            stance=AgreementStance.NUANCED,
+            notes="Shared focus on responsible action and boundaries, but Stoicism prioritizes rational virtue and control over internal assent; existentialism foregrounds radical freedom and self-authored meaning. The methods and grounds for boundary-setting diverge, though practical guidance often overlaps."
+        ),
+        AgreementItem(
+            framework_a=Framework.NEOADLERIANISM,
+            framework_b=Framework.STOICISM,
+            stance=AgreementStance.AGREE,
+            notes="Both advocate disciplined boundary-setting and focusing on tasks aligned with virtue (Stoic rational nature) or meaningful social contribution (Neoadlerianism). Their frameworks differ in metaphysical grounding but align in practical guidance on time and responsibilities."
         ),
         AgreementItem(
             framework_a=Framework.EXISTENTIALISM,
             framework_b=Framework.NEOADLERIANISM,
-            stance=AgreementStance.AGREE,
-            notes="Both champion individual courage against social pressure and authentic self-expression. Existentialism through radical freedom and responsibility, NeoAdlerianism through individual psychology and task separation."
-        ),
-        AgreementItem(
-            framework_a=Framework.STOICISM,
-            framework_b=Framework.NEOADLERIANISM,
             stance=AgreementStance.NUANCED,
-            notes="Both emphasize personal responsibility and focusing on what you can control. Stoicism grounds this in virtue ethics and rational duty, while NeoAdlerianism focuses on individual purpose and social contribution. They differ in their approach to community obligations."
+            notes="Both emphasize deliberate choice and responsibility, but existentialism centers on personal authenticity and freedom; neoadlerianism emphasizes purposeful, socially constructive goals. Boundaries can support both, yet tensions arise where personal desires clash with externally defined meaningful tasks."
         ),
     ]
     
@@ -144,65 +144,60 @@ def generate_mock_reflection(journal_text: str, enable_scout: bool = False) -> R
     if enable_scout:
         frameworks_in_tension.append(Framework.OTHER)
     
-    tension_explanation = """Below are 4 substantive tension points where the four core frameworks diverge in their foundational assumptions, methods, or goals. For each, I spell out the frameworks involved, the core philosophical principles driving the disagreement, and why the differences matter in practical terms.
+    tension_explanation = """Here are 3 substantive tension points where the frameworks diverge in their basic assumptions, methods, or aims. For each point, I name the frameworks involved, summarize the core philosophical disagreement, and note why it matters in practice.
 
-Tension Point 1: The status and purpose of boundary-setting in moral life (Buddhism vs. Stoicism vs. Existentialism vs. NeoAdlerianism)
-
-- Frameworks involved:
+Tension Point 1: What justifies saying no to a nonessential request
+- Frameworks involved
   - Buddhism
   - Stoicism
   - Existentialism
-  - NeoAdlerianism
+  - Neoadlerianism
+- Core principles driving the disagreement
+  - Buddhism: Boundaries arise from right intention and reducing dukkha. Saying no can be a compassionate act if it prevents craving, harm, or distraction from true priorities; the alignment is with mindfulness and interdependent well-being.
+  - Stoicism: Boundaries are justified by the dichotomy of control and by virtue. A decision to decline should serve rational self-governance and do not-just because it's irrational or out of line with moral duty.
+  - Existentialism: Boundaries are acts of authenticity. Declining is legitimate when it affirms self-ownership and responsibility, resisting "bad faith" by not living as someone else's expectation.
+  - Neoadlerianism: Boundaries are justified when they preserve energy for meaningful, socially constructive purposes. Declining should be guided by a teleology of personal responsibility and social value, tempered by empathy and collaboration.
+- Why this matters practically
+  - Explains why different people might choose different reasons (compassion, virtue, authenticity, usefulness) for the same decline.
+  - Affects how you phrase the refusal (tone and rationale), who you involve, and what you offer as alternatives.
+  - Determines whether boundary-setting is framed as self-care, moral duty, personal integrity, or service to a larger purpose.
 
-- Core principles driving the disagreement:
-  - Buddhism: Boundaries arise from recognizing craving (tanha) and its role in sustaining suffering. The ethical aim is to minimize suffering through right intention, right effort, right speech, and right action; compassionate boundaries are virtuous insofar as they reduce dukkha and align with the Middle Way.
-  - Stoicism: Boundaries are an application of the Dichotomy of Control. You cannot control others' demands; you can control your assent and actions. Virtue requires aligning responses with duty and reason, not bending to every external pressure. Boundaries are a rational management of what is genuinely within your power.
-  - Existentialism: Boundaries are acts of authentic self-authorship. Existence precedes essence, so you author meaning through choices. Saying yes to things you don't want is often bad faith unless you deliberately choose the boundary as a free, responsible act. Boundaries are about conscious creation of a life you acknowledge as yours.
-  - NeoAdlerianism: Boundaries are applications of task separation—clarifying what is your task versus others' tasks. The courage to be disliked means accepting that your boundaries may disappoint others, but managing their feelings about your choices is their task, not yours. Boundaries serve individual purpose and social contribution.
-
-- Why these differences matter practically:
-  - They lead to different justifications for the same practical move (declining a request). Buddhism would justify a boundary as a means to reduce suffering and cultivate right action; Stoicism would justify it as safeguarding virtue and rational freedom within the realm of control; Existentialism would justify it as an authentic assertion of personal meaning, even if uncomfortable for others.
-  - The risk profiles differ: Buddhism worries about becoming driven by fear or resentment masked as generosity; Stoicism worries about becoming rigid or cowardly in the face of real duties; Existentialism worries about acting in bad faith if boundaries are chosen reflexively or to avoid responsibility; NeoAdlerianism worries about using task separation to justify callousness or abandoning genuine community feeling.
-  - In practice, this translates into how you phrase a decline (compassionate and non-harming vs. firm and duty-centered vs. honest about authorship and costs vs. clear task separation) and how you calibrate the boundary's breadth (limiting burnout vs. preserving relational trust vs. maintaining existential integrity vs. enabling authentic social contribution).
-
-Tension Point 2: Freedom and agency under different metaphysical pictures (Buddhism vs. Stoicism vs. Existentialism)
-
-- Frameworks involved:
+Tension Point 2: The end goal of boundary-setting—inner state vs. virtue vs authenticity vs meaning
+- Frameworks involved
   - Buddhism
   - Stoicism
   - Existentialism
+  - Neoadlerianism
+- Core principles driving the disagreement
+  - Buddhism: The ultimate goal is reducing suffering (dukkha) and cultivating wise, compassionate action. Boundaries serve the path to clarity and liberation from craving.
+  - Stoicism: The end is virtue (the only true good). Boundaries should cultivate rational agency and align actions with the good, independent of external approval or outcomes.
+  - Existentialism: The end is authentic self-authorship and meaning chosen by the individual. Boundaries express responsibility for one's own existence and projects.
+  - Neoadlerianism: The end is meaningful contribution within a social teleology. Boundaries should protect time for actions that have clear social value and purpose.
+- Why this matters practically
+  - When values clash (peace vs virtue, authenticity vs usefulness), you must choose which ends to prioritize in a given situation.
+  - This shapes daily decisions about workload, who to help, and how to communicate refusals (e.g., a boundary that preserves inner peace vs one that sustains virtue or social contribution).
+  - It affects long-term identity: are you defining yourself by inner serenity, by virtuous conduct, by self-authored projects, or by service to others?
 
-- Core principles driving the disagreement:
-  - Buddhism: Freedom is freedom from craving and ignorance within a causal, interdependent fabric (pratitya-samutpada). Personal agency exists but is conditioned; liberation involves transforming mental causes (skilful intentions) and attenuating attachment.
-  - Stoicism: Freedom is internal sovereignty within the constraints of a rational universe. You may not control external events; you can and should control your assent to impressions and your virtuous response. Freedom is about aligning with nature and reason, not about absolute libertarian autonomy.
-  - Existentialism: Freedom is radical and absolute in the sense that individuals always have the power to choose and to project meaning. With this comes responsibility and anxiety (anguish) because choices carve the course of a life, regardless of conditioning.
-
-- Why these differences matter practically:
-  - They shape how you experience pressure from demands. Buddhism emphasizes transforming relations to craving so you respond with less reactivity; Stoicism emphasizes disciplined interior governance so you neither panic nor capitulate but act in accord with virtue; Existentialism emphasizes owning the cost of choices and continuing to choose despite anxiety.
-  - They influence attitudes toward determinism, responsibility, and resilience. If you lean Buddhist, you might center cultivation of intention to soften reactive responses; if you lean Stoic, you might center a calm, principled veto of non-essential commitments; if you lean Existentialist, you might emphasize transparent commitment to a chosen path even when it entails conflict or cost.
-  - In group dynamics or workplaces, these differences can produce distinct negotiation styles: compassionate boundary-setting with awareness of craving (Buddhism), calm principled refusals with attention to duties (Stoicism), or explicit, self-authored boundaries that state a chosen meaning (Existentialism).
-
-Tension Point 3: Universality of virtue vs. authenticity and meaning-making (Buddhism vs. Stoicism vs. Existentialism)
-
-- Frameworks involved:
+Tension Point 3: The status of control and responsibility—internal sovereignty vs external constraints
+- Frameworks involved
   - Buddhism
   - Stoicism
   - Existentialism
+  - Neoadlerianism
+- Core principles driving the disagreement
+  - Buddhism: Reality is interdependent; while you can train intentions, you are embedded in a web of causes and conditions. Boundaries are mindful responses within that web, aiming to reduce suffering for all involved.
+  - Stoicism: You control assent and choices, but not outcomes or others' demands. The ideal is to align with nature and virtue, accepting what you cannot influence.
+  - Existentialism: You own your freedom and responsibility for choosing how to respond to constraints. Even within social systems, you are always making a self-authored choice.
+  - Neoadlerianism: You own your own tasks and responses, balancing personal autonomy with social responsibility. Boundaries protect meaningful action rather than simply retreating from others.
+- Why this matters practically
+  - Influences how you assess accountability: Are you responsible primarily for your inner state, for virtuous action, for authentic self-definition, or for advancing a socially meaningful project?
+  - Affects interpersonal dynamics: If you lean toward interdependence (Buddhism), you may factor others' well-being into decisions; if you lean toward strict autonomy (Stoicism/Existentialism), you may distance yourself; Neoadlerianism emphasizes coordinating boundaries with collaborative goals.
+  - Determines risk of rigidity vs. flexibility: Misreading the degree of influence you have can lead to excessive avoidance (rigidity) or overcommitment (compromise of virtue, authenticity, or meaning).
 
-- Core principles driving the disagreement:
-  - Buddhism: There are universal ethical guidelines aimed at reducing suffering—things like non-harm, truthful speech, compassionate action, and the cultivation of right intention. These are not mere preferences but part of a cultivated path toward awakening.
-  - Stoicism: There are universal virtues (e.g., wisdom, justice, courage, temperance) aligned with rational nature. Virtue is sufficient for eudaimonia; external goods or opinions don't determine virtue.
-  - Existentialism: There are no pre-given universal norms that determine meaning. Ethics are contingent on individual choices and authenticity. What matters is that you own your decisions and create meaning through them, even if that means redefining or resisting external norms.
-
-- Why these differences matter practically:
-  - Decision-making under conflict or ambiguity: Buddhism offers a universal ethical framework to adjudicate actions for the sake of reducing suffering; Stoicism offers a universal, rational basis to assess whether a response upholds virtue despite external pressure; Existentialism offers a framework where boundaries and duties are chosen rather than dictated, emphasizing personal responsibility and authenticity.
-  - The style of justification and accountability differs. A Buddhist justification might appeal to compassion and the elimination of craving; a Stoic justification might appeal to rational duty and social harmony; an existentialist justification might appeal to personal integrity and disclosure of costs.
-  - In real terms, this affects how you validate your boundary decisions: are they morally compelled by universal precepts, by rational virtue and social role, or by a personally authored life project?
-
-Concluding note
-- These tensions are not simply debates about good manners or self-care. They reveal deep divergences about what counts as the good life, what freedom consists in, and what grounds normative guidance. The Buddhist framework grounds ethics in the alleviation of suffering within interdependent causality; Stoicism grounds ethics in rational nature and virtue as the path to a tranquil, right-living life; Existentialism grounds ethics in radical freedom and personal responsibility to author meaning. Understanding these tensions can illuminate why a given boundary is defended in different ways and why each tradition offers unique tools for navigating demanding work, while also exposing potential blind spots (e.g., over-identification with boundaries, fear masquerading as detachment, or reckless self-authorship without accountability).
-
-If you'd like, I can map these tensions onto your specific experiments (three mindful breaths, boundary phrasing, the "gate" metaphor) and show how each framework would justify, critique, or modify those practices."""
+How to use these tensions constructively
+- Recognize that each framework answers different fundamental questions: What makes boundary-setting virtuous? What is the highest good to pursue? What counts as genuine freedom? What is your responsibility to others?
+- When in doubt, articulate your decision in terms of the value you're prioritizing (e.g., "I'm declining to protect my time for a project that serves X" rather than simply "I don't feel like it") and be explicit about the lens you're using (compassion, virtue, authenticity, or social meaning).
+- Be mindful of the traps each tradition warns against (rigidity, avoidance, bad faith, or coldness). Strive for boundary-setting that is humane, reasoned, and coherent with your overarching commitments."""
 
     if enable_scout:
         tension_explanation += "\n\nWith the addition of Attachment Theory, we see further tensions around whether emotional regulation should prioritize individual virtue (Stoic), interdependent compassion (Buddhist), authentic self-expression (Existentialist), or secure relational bonding (Attachment Theory)."
@@ -214,102 +209,92 @@ If you'd like, I can map these tensions onto your specific experiments (three mi
         )
     ]
     
-    synthesis = """A unified, practical synthesis: Boundaries that honor craving, duty, and freedom
+    synthesis = """Unified synthesis: Boundaries that serve meaning, virtue, authenticity, and compassionate contribution
 
 Core idea
-Treat boundary-setting as a single, holistic practice that blends Buddhist mindful discernment, Stoic freedom from what you cannot control, and existential responsibility for the life you choose to live. Boundaries are not walls or excuses; they are compassionate, courageous, and authentic actions that reduce suffering, protect agency, and shape meaning.
+Create a practical practice that honors what each tradition teaches:
+- Buddhism: reduce dukkha by cutting craving/aversion, aligning intentions with true priorities, and acting mindfully.
+- Stoicism: govern your own assent and choices; virtue is the only true good; say yes only to what your rational nature would approve.
+- Existentialism: existence precedes essence; you own the meaning of your actions, so declining or renegotiating should reinforce authentic self-ownership.
+- Neoadlerianism: you are responsible for your own tasks and energy; clarify what is yours to own, and preserve room to contribute with intention and social value.
 
-Three integrated principles (one sentence each)
-- Buddhist: Pause craving and reactivity, orient toward truthful, compassionate action, and practice the Middle Way to avoid both over-taxing yourself and neglecting duties.
-- Stoic: Focus on what you can control—your assent and your actions—using clear boundaries to preserve virtue and responsibility.
-- Existentialist: You author your life with every choice; saying yes to what you don't want is a negation of freedom—truthful boundaries reclaim meaning and agency.
+The unified principle
+Boundaries are not barriers to care; they are deliberate, compassionate actions that make your meaningful contributions possible. They emerge from clear intention, rational discernment, authentic ownership, and purposeful responsibility.
 
-Integrated practice framework (one workflow, three traditions in harmony)
-1) Pause and clear craving (Buddhist core)
-- When a new task request comes in, pause for three mindful breaths.
-- Observe urges: "I want to say yes because of fear, guilt, or desire to please."
+Practical framework: The 5-step Boundary Cycle
+1) Pause with intention (mindful clarity)
+- Take a brief breath and ask: What is my initial impulse—craving to please or fear of conflict? What would a wise, virtuous, authentic choice be in this moment?
+- Ask three questions:
+  - What is mine to own here? (Dichotomy of Control)
+  - Which value or priority does this request touch (e.g., care, duty, growth, justice)?
+  - Will saying yes today advance my meaningful purpose without compromising other commitments?
 
-2) Check control and duty (Stoic core)
-- Ask these quick questions:
-  - Is this fully within my control to fulfill well?
-  - Is this a true good or only a preference or convenience?
-  - What is my real duty in this moment (compassionate care, not burning out, alignment with commitments)?
-- If the answer is "not now" or "not this way," proceed to boundary communication.
+2) Translate intention into a boundary (clear, compassionate communication)
+- Use a concise boundary script that incorporates the traditions:
+  - Acknowledge the request with care.
+  - State the boundary with personal responsibility.
+  - Offer a constructive alternative (revisit later, delegate, or propose an adjusted scope).
+- Example script (one you can adapt):
+  "Thank you for thinking of me. I can't take this on today due to my current commitments. If it's important, we can revisit after I've prioritized my duties, or I can suggest someone else who can help. I'm aiming to stay aligned with what I'm able to responsibly take on right now."
 
-3) Name meaning and responsibility (Existentialist core)
-- Remember: existence precedes essence. You are choosing how to shape your life, not passively acquiescing to every demand.
-- State the boundary in a way that preserves meaning: you are crafting a life you can live with integrity, including the costs.
+3) Act with virtue and ownership (behavior aligned with purpose)
+- Decline or renegotiate, but remain helpful where you can. If you offer alternatives, do so with clarity about your capacity and the value you can still contribute.
+- Remember: the boundary is a choice that serves your rational good and the good of the system you're part of (colleagues, projects, clients).
 
-4) Respond with compassionate clarity (integrated action)
-- Deliver a boundary that is honest, specific, and constructive. You may accept with conditions or decline with alternatives.
-- Use a boundary script that aligns with your situation (see templates below).
+4) Reflect and adjust (learn how it lands)
+- After the interaction, note what felt true, what caused friction, and how the other person responded.
+- Journal or quick notes: Did the boundary preserve energy for meaningful work? Did it create a workable next step?
 
-5) Reflect and refine (all three traditions together)
-- After acting, journal or note:
-  - How did the boundary reduce suffering or protect your integrity?
-  - Was the act aligned with virtue (courage, temperance, justice) and authenticity?
-  - How did it feel to exercise freedom and responsibility?
+5) Revisit and refine (iterate toward integrative practice)
+- At regular intervals (daily quick check, weekly review), assess whether boundaries need clarifying, rebalancing, or softening/strengthening in light of changing priorities.
 
-Practical boundary scripts (ready-to-use templates)
-- If you can take it on later:
-  - "I can take this on starting next week. If it's important, we can revisit after I review my priorities."
-- If you can help in another way:
-  - "I can help in X alternative way or with Y task at Z time."
-- If you must decline:
-  - "I appreciate the offer. I can't take this on right now due to current commitments. If it's urgent, let's set a check-in in 24 hours to reassess."
-- If it's urgent but you're near capacity:
-  - "I want to give this proper attention. I can't start today, but I can begin with a small, defined portion at [time], then reassess."
-- If you need to protect your own limits:
-  - "I'm prioritizing [core duty or well-being] today. I'll be happy to discuss this after [date/time]."
+Experiment templates (practical, doable)
+- 24-hour nonessential request decline
+  - Script: "I can't take this on today due to my current commitments. If it's important, we can revisit after I've prioritized my duties, or I can suggest someone else who can help."
+  - Action: Use it once for any nonessential request; observe how it affects workload, mood, and the other person's response.
+- Daily one-boundary practice
+  - Choose one incoming request you're tempted to say yes to but don't want to. Apply the script, and note the outcome: sense of control, balance, and relationship impact.
+- Weekly meaning-and-responsibility review
+  - Review all commitments; distinguish what is truly yours to own, what can be delegated, and what should be renegotiated in service of meaningful goals.
 
-Three integrated metaphors to keep in view
-- Garden (Buddhist): Prune craving with mindful intention so the fruits of work can ripen.
-- Gate (Stoic): Let your assent be a gate, not a revolving door—guard access to your time and energy.
-- Marble and chisel (Existentialist): You carve a life of meaning through deliberate, responsible shaping of choices.
+Boundaries in practice: language that honors each tradition
+- Buddhist emphasis on intention and compassion:
+  - "I decline to take this on today to maintain mindful focus and reduce suffering for myself and others. If possible, I can help by offering a later time or an alternative solution."
+- Stoic emphasis on control and virtue:
+  - "I can't take this on today due to other commitments. If it's important, we can revisit after I've prioritized my duties, or I can suggest someone else who can help."
+- Existentialist emphasis on authenticity and responsibility:
+  - "I'm choosing to decline to preserve my own integrity and the authentic commitments I've chosen. I'm open to renegotiating scope or responsibilities if that respects both our aims."
+- Neoadlerian emphasis on task ownership and meaningful contribution:
+  - "What's mine to own here? I can't take this on now, but we can revisit later or delegate to someone whose current tasks align with our shared goals."
 
-Common traps and safeguards (and how this synthesis handles them)
-- Mindfulness turned into resignation: Use mindful action (pause, reflect, decide) to engage rather than withdraw; choose boundary timing and content that serve constructive outcomes.
-- Boundaries as rigidity: Combine with compassionate duty; if help is truly needed, act bravely and appropriately, not out of fear of conflict.
-- Over-assertion or refusal of all demands: Always test whether the situation calls for courage, just action, or a strategic decline. When in doubt, seek a temporary boundary (delay, partial commitment) rather than a full withdrawal.
-- Boundary punishment or punishment avoidance: Boundaries are tools for meaningful action, not weapons. Communicate intent to preserve relationships and shared goals.
+Common traps and guardrails
+- Rigidity masquerading as wisdom
+  - Guard against using boundaries to evade responsibility; ensure there is still care for others and the system.
+- Boundary-setting as coldness
+  - Pair boundaries with warmth, empathy, and a willingness to contribute where your work truly lies.
+- Bad faith or inauthentic reasons
+  - Ensure the boundary serves genuine priorities, not just a personal preference to avoid discomfort.
+- Over-scheduling or under-communicating
+  - Balance is key: boundaries should preserve energy for meaningful tasks and clear expectations with others.
 
-A compact implementation plan (21 days to habit)
-- Week 1: Practice the three-breath pause before any new task request. Start with one or two requests per day.
-- Week 2: Add the 60-second Stoic reflection (control, duty, true good vs preference) before committing.
-- Week 3: Use an existential framing: name the boundary, explain the personal meaning, and propose a concrete alternative or timeframe.
-- Daily habit check: Record a brief note: what boundary you set, what you said, and how it felt. Note any impact on well-being and relationships.
-- Week 4+: Review patterns. Adjust scripts to fit your context. If you notice recurring requests, consider system changes (e.g., setting specific office hours, delegating routine tasks).
+A single, coherent synthesis you can live by
+- Core principle distilled: Boundaries are mindful, compassionate instruments that preserve your capacity to act with virtue, authenticity, and purposeful contribution.
+- The practical practice: Pause, discern, communicate clearly, act with ownership, reflect, and refine.
+- The result: You reduce unnecessary commitments, stay true to your values, honor your duties, and create space to contribute where you can make the most impact.
 
-Alignment map: how the traditions complement each other
-- Buddhism provides a compassionate, mindful foundation to recognize craving and to act with intention (the Middle Way).
-- Stoicism provides a precise, controllable framework for decision-making and the virtue-based standard for action.
-- Existentialism grounds the practice in personal freedom and responsibility, ensuring boundaries are chosen and meaningful rather than imposed or robotic.
+A short, integrative metaphor
+- The inner citadel gates stay open for what matters; every boundary is a carefully weighed gate you close to protect the garden of your meaningful work. Chop wood, carry water—mindful, purposeful labor that keeps your life clear and your commitments trustworthy.
 
-How this synthesis respects differences
-- It respects Buddhist emphasis on reducing suffering through mindful action and the Middle Way, while translating it into practical boundary-setting that does not become resignation.
-- It respects Stoic insistence on the Dichotomy of Control by making the boundary a tool to govern one's assent and actions, not others' demands.
-- It respects existentialist insistence on freedom and authenticity by making each boundary a conscious, value-driven choice that shapes one's life narrative.
-
-A concise one-page guide you can carry
-- Before replying to any new task: three mindful breaths -> observe craving.
-- Quick check (control, duty, true good): is it mine to fulfill now? If yes, proceed with a boundary-refined approach; if no, consider alternatives or a delay.
-- Boundary script: choose one of the templates above; add a brief rationale if helpful for the other party.
-- After-action reflection: 1-minute write-up on alignment with virtue, freedom, and meaning.
-
-This unified approach gives you a practical, honest, and learnable way to say yes or no in ways that reduce suffering, preserve agency, and foster a meaningful life. If you want, I can tailor the scripts to specific contexts (team, client, family) and provide a printable daily checklist."""
+If you'd like, I can tailor this into a one-page personal protocol for you (including your top values, typical boundary scripts customized to your context, and a 7-day experiment plan)."""
 
     if enable_scout:
         synthesis += "\n\nWith Attachment Theory integrated: Also consider how your boundary-setting affects your attachment security and relationships. Practice boundaries that maintain connection while honoring your authentic needs."
 
     what_is_lost = [
-        "Here are 4 specific aspects that tend to be softened or diminished when Buddhism, Stoicism, and Existentialism are blended into a single synthesis:",
-        "1) Existential self-authorship and meaning-making",
-        "What's lost: The urgent sense that you are the author of your own life, and that meaning must be actively created through choices you fully own (existentialism).",
-        "Why it softens in synthesis: boundary-setting and acceptance (Buddhist and Stoic tones) can shift focus from radical personal creation to managing duties, duties-bound boundaries, or accepted path. The edgy impulse to redefine meaning through bold, costly choices may be dulled.",
-        "2) Buddhist liberation and the radical nature of non-attachment",
-        "What's lost: The transformative goal of liberation (nirvana) that goes beyond practical boundary management to fundamentally transform one's relationship to suffering and craving.",
-        "3) Stoic rational discipline and virtue as the sole good",
-        "What's lost: The uncompromising focus on virtue as the only true good, with external circumstances being genuinely indifferent rather than balanced with other concerns.",
+        "Here are 2–4 specific aspects from each tradition that tend to be softened, diluted, or lost when that tradition is blended into a broader synthesis:",
+        "Buddhism",
+        "Root-illness diagnosis softened: The central claim that dukkha arises from craving and aversion (and that practice aims to uproot these roots) can be reduced to surface-level boundary management, missing the deeper analysis of craving as the engine of suffering.",
+        "Non-attachment to outcomes diluted: Right intention and the discipline of not clinging to results may become pragmatic \"get this handled\" behavior, diminishing the transformative aim of letting go of the fruits of action."
     ]
 
     if enable_scout:
