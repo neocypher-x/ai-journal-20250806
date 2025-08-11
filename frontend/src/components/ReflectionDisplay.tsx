@@ -1,5 +1,5 @@
 import { Reflection } from '@/types/api';
-import { PerspectiveCard } from './PerspectiveCard';
+import { PerspectivesTable } from './PerspectivesTable';
 import { ProphecySection } from './ProphecySection';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,7 @@ export function ReflectionDisplay({ reflection, onNewReflection }: ReflectionDis
         </div>
       </div>
 
-      <div className="w-full max-w-6xl mx-auto">
+      <div className="w-full max-w-7xl mx-auto">
         <div className="mb-8">
           <h2 className="text-2xl font-light text-foreground mb-2 text-center">Philosophical Perspectives</h2>
           <p className="text-muted-foreground text-center">
@@ -36,10 +36,8 @@ export function ReflectionDisplay({ reflection, onNewReflection }: ReflectionDis
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {reflection.perspectives.items.map((perspective, index) => (
-            <PerspectiveCard key={index} perspective={perspective} />
-          ))}
+        <div className="gradient-card border border-border/40 rounded-lg shadow-sm overflow-hidden">
+          <PerspectivesTable perspectives={reflection.perspectives} />
         </div>
       </div>
 
