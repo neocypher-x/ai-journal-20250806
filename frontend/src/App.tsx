@@ -54,7 +54,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen gradient-zen">
+    <div className="min-h-screen gradient-vivid">
       <div className="container mx-auto px-4 py-8">
         {/* Developer Mode Toggle */}
         <div className="fixed top-4 right-4 z-50">

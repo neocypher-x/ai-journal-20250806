@@ -14,7 +14,7 @@ export function ReflectionDisplay({ reflection, onNewReflection }: ReflectionDis
   return (
     <div className="w-full space-y-8 animate-fade-in">
       <div className="w-full max-w-4xl mx-auto">
-        <div className="gradient-card border border-border/40 rounded-lg shadow-sm overflow-hidden">
+        <div className="gradient-card border border-border/50 rounded-lg shadow-lg overflow-hidden">
           <div className="p-8">
             <div className="mb-6">
               <h2 className="text-2xl font-light text-foreground mb-2">Your Journal Entry</h2>
@@ -36,7 +36,7 @@ export function ReflectionDisplay({ reflection, onNewReflection }: ReflectionDis
           </p>
         </div>
         
-        <div className="gradient-card border border-border/40 rounded-lg shadow-sm overflow-hidden">
+        <div className="gradient-card border border-border/50 rounded-lg shadow-lg overflow-hidden">
           <PerspectivesTable perspectives={reflection.perspectives} />
         </div>
       </div>

@@ -31,7 +31,7 @@ export function JournalForm({ onSubmit, isLoading }: JournalFormProps) {
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <div className="gradient-card border border-border/50 rounded-lg shadow-sm overflow-hidden">
+      <div className="gradient-card border border-border/50 rounded-lg shadow-lg overflow-hidden">
         <div className="p-8">
           <div className="mb-6">
             <h1 className="text-3xl font-light text-foreground mb-2 text-balance">
