@@ -57,8 +57,7 @@ class ExcavationEngine:
             response = await self.client.chat.completions.create(
                 model=self.settings.model,
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.3,
-                max_tokens=800
+                max_completion_tokens=800
             )
             
             content = response.choices[0].message.content or ""
@@ -163,8 +162,7 @@ class ExcavationEngine:
             response = await self.client.chat.completions.create(
                 model=self.settings.model,
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.4,
-                max_tokens=200
+                max_completion_tokens=800
             )
             
             question = (response.choices[0].message.content or "").strip()
@@ -230,8 +228,7 @@ class ExcavationEngine:
             response = await self.client.chat.completions.create(
                 model=self.settings.model,
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.2,
-                max_tokens=500
+                max_completion_tokens=500
             )
             
             content = response.choices[0].message.content or ""
