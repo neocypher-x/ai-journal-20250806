@@ -243,7 +243,7 @@ class ExcavationEngine:
             response = await self.client.chat.completions.create(
                 model=self.settings.model,
                 messages=[{"role": "user", "content": prompt}],
-                max_completion_tokens=500
+                max_completion_tokens=5000
             )
             
             content = response.choices[0].message.content or ""
