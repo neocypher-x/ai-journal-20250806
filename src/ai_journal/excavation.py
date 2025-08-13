@@ -186,10 +186,25 @@ class ExcavationEngine:
     
     def _fallback_question(self, targets: List[CruxHypothesis], state: ExcavationState) -> str:
         """Generate a fallback question if AI fails."""
-        if len(targets) >= 2:
-            return f"Can you tell me more about what specifically makes this situation difficult for you?"
-        else:
-            return f"What evidence supports or contradicts this being the core issue?"
+        previous_questions = [turn.probe.question for turn in state.probes_log]
+        
+        # Different fallback questions to avoid repetition
+        fallback_options = [
+            "Can you tell me more about what specifically makes this situation difficult for you?",
+            "What emotions or feelings come up most strongly when you think about this?",
+            "When did you first notice this pattern or issue starting?",
+            "What would happen if you tried to change this situation?",
+            "How do you think others might view this situation differently than you do?",
+            "What aspects of this feel most urgent or pressing to address?"
+        ]
+        
+        # Find first option not already used
+        for option in fallback_options:
+            if option not in previous_questions:
+                return option
+        
+        # If all used, return a generic one with variation
+        return f"What other aspects of this situation feel important to explore?"
     
     async def update_beliefs(self, state: ExcavationState, user_reply: str) -> List[CruxHypothesis]:
         """

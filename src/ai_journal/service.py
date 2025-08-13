@@ -134,7 +134,7 @@ class ReflectionService:
             updated_hypotheses=updated_hypotheses
         )
         
-        # Update state
+        # Update state FIRST (including probe log for next probe planning)
         state.hypotheses = updated_hypotheses
         state.probes_log.append(probe_turn)
         state.budget_used += 1
@@ -158,7 +158,7 @@ class ReflectionService:
                 result=excavation_result
             )
         else:
-            # Continue - generate next probe
+            # Continue - generate next probe (state now includes current probe in log)
             next_probe = await self.excavation_engine.plan_next_probe(state)
             state.last_probe = next_probe
             
