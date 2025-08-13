@@ -8,14 +8,15 @@ from typing import Optional
 from openai import AsyncOpenAI
 
 from ai_journal.models import JournalEntry, Perspective, Framework
+from ai_journal.config import get_settings
 
 
 class PhilosophicalAgent(ABC):
     """Base class for philosophical agents."""
     
-    def __init__(self, client: AsyncOpenAI, model: str = "gpt-4o-mini"):
+    def __init__(self, client: AsyncOpenAI, model: str = None):
         self.client = client
-        self.model = model
+        self.model = model or get_settings().model
     
     @abstractmethod
     def get_framework(self) -> Framework:
@@ -199,9 +200,9 @@ Avoid:
 class ScoutAgent:
     """Agent that suggests additional relevant philosophical frameworks."""
     
-    def __init__(self, client: AsyncOpenAI, model: str = "gpt-4o-mini"):
+    def __init__(self, client: AsyncOpenAI, model: str = None):
         self.client = client
-        self.model = model
+        self.model = model or get_settings().model
     
     async def scout_relevant_framework(self, journal_entry: JournalEntry) -> Optional[str]:
         """Identify a relevant philosophical framework beyond the core three."""

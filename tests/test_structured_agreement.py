@@ -10,6 +10,7 @@ from ai_journal.models import (
     AgreementStance, AgreementScorecardResponse
 )
 from ai_journal.oracle import OracleAgent
+from ai_journal.config import get_settings
 from openai import AsyncOpenAI
 
 logging.basicConfig(level=logging.DEBUG)
@@ -41,7 +42,7 @@ async def test_structured_agreement_scorecard():
     
     # Mock client
     mock_client = AsyncMock(spec=AsyncOpenAI)
-    oracle = OracleAgent(mock_client, model="gpt-4o-mini")
+    oracle = OracleAgent(mock_client, model=get_settings().model)
     
     # Create mock structured response
     mock_agreement_item = AgreementItem(
@@ -91,7 +92,7 @@ async def test_with_real_api():
     print("🔍 Testing structured output with real OpenAI API...")
     
     client = AsyncOpenAI(api_key=api_key)
-    oracle = OracleAgent(client, model="gpt-4o-mini")
+    oracle = OracleAgent(client, model=get_settings().model)
     
     try:
         test_perspectives = create_test_perspectives()
@@ -120,7 +121,7 @@ async def test_fallback_behavior():
     """Test fallback behavior when structured output fails."""
     
     mock_client = AsyncMock(spec=AsyncOpenAI)
-    oracle = OracleAgent(mock_client, model="gpt-4o-mini")
+    oracle = OracleAgent(mock_client, model=get_settings().model)
     
     # Mock a failed response
     mock_client.beta.chat.completions.parse.side_effect = Exception("API Error")

@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     debug: bool = False
     log_level: str = "DEBUG"  # Can be DEBUG, INFO, WARNING, ERROR
     
+    # v2 Excavation Parameters (server-only constants)
+    tau_high: float = 0.80  # confidence threshold for exit
+    delta_gap: float = 0.25  # margin to second-best for exit
+    n_confirmations: int = 2  # confirmation votes needed for exit
+    k_budget: int = 4  # maximum probe turns
+    max_hypotheses: int = 4  # maximum concurrent hypotheses
+    
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

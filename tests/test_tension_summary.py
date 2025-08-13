@@ -8,6 +8,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 from ai_journal.models import Framework, Perspective, Perspectives, TensionPoint
 from ai_journal.oracle import OracleAgent
+from ai_journal.config import get_settings
 from openai import AsyncOpenAI
 
 # Set up logging for debugging
@@ -51,7 +52,7 @@ class TestTensionSummary:
         """Set up test fixtures."""
         # Create a mock client for testing
         self.mock_client = AsyncMock(spec=AsyncOpenAI)
-        self.oracle = OracleAgent(self.mock_client, model="gpt-4o-mini")
+        self.oracle = OracleAgent(self.mock_client, model=get_settings().model)
 
     async def test_generate_tension_summary_with_mock_response(self):
         """Test _generate_tension_summary with a mocked successful response."""
@@ -161,7 +162,7 @@ async def test_with_real_openai_api():
     print("🔍 Testing with real OpenAI API...")
     
     client = AsyncOpenAI(api_key=api_key)
-    oracle = OracleAgent(client, model="gpt-4o-mini")
+    oracle = OracleAgent(client, model=get_settings().model)
     
     try:
         result = await oracle._generate_tension_summary(TEST_PERSPECTIVES)
