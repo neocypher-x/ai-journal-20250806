@@ -8,6 +8,7 @@ import re
 from typing import List, Tuple, Optional, Dict, Any
 from uuid import UUID
 from openai import AsyncOpenAI
+from pydantic import BaseModel, Field
 
 from ai_journal.config import Settings
 from ai_journal.models import (
@@ -17,6 +18,20 @@ from ai_journal.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class HypothesisUpdate(BaseModel):
+    """Structured output for a single hypothesis update."""
+    hypothesis_index: int = Field(description="1-based index of the hypothesis")
+    new_confidence: float = Field(ge=0.0, le=1.0, description="New confidence score")
+    confirmation: bool = Field(description="Whether this reply strongly confirms the hypothesis")
+    reasoning: str = Field(description="Brief explanation for the confidence change")
+
+
+class BeliefUpdateResponse(BaseModel):
+    """Structured output for belief updates."""
+    updates: List[HypothesisUpdate] = Field(description="Updates for each hypothesis")
+    overall_analysis: str = Field(description="Overall assessment of the user's reply")
 
 
 class ExcavationEngine:
@@ -208,7 +223,7 @@ class ExcavationEngine:
     
     async def update_beliefs(self, state: ExcavationState, user_reply: str) -> List[CruxHypothesis]:
         """
-        Update hypothesis confidence scores based on user's reply.
+        Update hypothesis confidence scores based on user's reply using structured outputs.
         """
         logger.info("Updating beliefs based on user reply")
         
@@ -218,74 +233,78 @@ class ExcavationEngine:
         active_hypotheses = [h for h in state.hypotheses if h.status == "active"]
         
         prompt = f"""
-        Analyze this user reply in the context of the probe question and hypotheses.
-        Score each hypothesis from 0.0 to 1.0 based on how well the reply supports it.
+        You are analyzing a user's response to determine which psychological hypothesis best explains their situation.
         
         Probe Question: {state.last_probe.question}
         
-        User Reply: {user_reply}
+        User Reply: "{user_reply}"
         
-        Hypotheses to score:
+        Current Hypotheses:
         {chr(10).join(f"{i+1}. {h.text} (current confidence: {h.confidence:.2f})" for i, h in enumerate(active_hypotheses))}
         
-        For each hypothesis, provide:
-        - New confidence score (0.0-1.0)
-        - Whether this reply provides strong confirmation (+1 confirmation)
-        - Brief reasoning
+        For each hypothesis, analyze how the user's reply relates to it:
+        1. Does the reply provide evidence FOR this hypothesis? (increase confidence significantly)
+        2. Does the reply contradict or weaken this hypothesis? (decrease confidence significantly)  
+        3. Is the reply neutral/irrelevant to this hypothesis? (small adjustment only)
         
-        Format:
-        1. Score: 0.XX, Confirmation: Yes/No, Reason: [brief]
-        2. Score: 0.XX, Confirmation: Yes/No, Reason: [brief]
-        ...
+        Make meaningful confidence changes (at least ±0.1) when evidence clearly supports or contradicts a hypothesis.
+        Set confirmation=true only if the reply strongly supports that specific hypothesis.
         """
         
         try:
-            response = await self.client.chat.completions.create(
+            response = await self.client.responses.parse(
                 model=self.settings.model,
-                messages=[{"role": "user", "content": prompt}],
-                max_completion_tokens=5000
+                input=[
+                    {"role": "system", "content": "You are a psychological analyst providing structured belief updates."},
+                    {"role": "user", "content": prompt}
+                ],
+                text_format=BeliefUpdateResponse
             )
             
-            content = response.choices[0].message.content or ""
-            updated_hypotheses = self._parse_belief_updates(content, active_hypotheses, user_reply)
+            # Get parsed structured response directly
+            belief_update = response.output_parsed
             
-            logger.info(f"Updated beliefs for {len(updated_hypotheses)} hypotheses")
-            return updated_hypotheses
+            if belief_update:
+                updated_hypotheses = self._apply_structured_updates(belief_update, active_hypotheses)
+                logger.info(f"Successfully applied structured updates to {len(updated_hypotheses)} hypotheses")
+                return updated_hypotheses
+            else:
+                logger.warning("No parsed response received, falling back to heuristics")
+                return self._fallback_belief_update(active_hypotheses, user_reply)
             
         except Exception as e:
-            logger.error(f"Failed to update beliefs: {e}")
+            logger.error(f"Failed to get structured belief update: {e}")
             return self._fallback_belief_update(active_hypotheses, user_reply)
     
-    def _parse_belief_updates(self, content: str, hypotheses: List[CruxHypothesis], user_reply: str) -> List[CruxHypothesis]:
-        """Parse belief updates from AI response."""
-        lines = content.strip().split('\n')
+    def _apply_structured_updates(self, belief_update: BeliefUpdateResponse, hypotheses: List[CruxHypothesis]) -> List[CruxHypothesis]:
+        """Apply structured belief updates to hypotheses."""
         updated = []
         
+        # Create a map of updates by index
+        updates_by_index = {update.hypothesis_index: update for update in belief_update.updates}
+        
         for i, hypothesis in enumerate(hypotheses):
-            # Create copy for update
             new_hyp = hypothesis.model_copy()
+            hypothesis_index = i + 1  # 1-based indexing
             
-            # Look for corresponding line
-            pattern = rf"^{i+1}\.\s*Score:\s*([\d.]+).*Confirmation:\s*(Yes|No)"
-            for line in lines:
-                match = re.search(pattern, line, re.IGNORECASE)
-                if match:
-                    try:
-                        new_confidence = float(match.group(1))
-                        new_confidence = max(0.0, min(1.0, new_confidence))  # clamp
-                        new_hyp.confidence = new_confidence
-                        
-                        if match.group(2).lower() == 'yes':
-                            new_hyp.confirmations += 1
-                        
-                        # Check if should be discarded (very low confidence for multiple turns)
-                        if new_confidence < 0.15 and new_hyp.confirmations == 0:
-                            new_hyp.status = "discarded"
-                            new_hyp.discard_reason = "Low confidence after user feedback"
-                        
-                    except ValueError:
-                        pass  # Keep original values
-                    break
+            if hypothesis_index in updates_by_index:
+                update = updates_by_index[hypothesis_index]
+                old_confidence = new_hyp.confidence
+                
+                # Apply the structured update
+                new_hyp.confidence = update.new_confidence
+                
+                if update.confirmation:
+                    new_hyp.confirmations += 1
+                
+                # Check if should be discarded
+                if new_hyp.confidence < 0.15 and new_hyp.confirmations == 0:
+                    new_hyp.status = "discarded"
+                    new_hyp.discard_reason = "Low confidence after user feedback"
+                
+                logger.debug(f"Structured update {hypothesis_index}: {old_confidence:.2f} -> {new_hyp.confidence:.2f} (reason: {update.reasoning})")
+            else:
+                logger.warning(f"No structured update found for hypothesis {hypothesis_index}")
             
             updated.append(new_hyp)
         
