@@ -45,7 +45,7 @@ class ExcavationEngine:
     
     async def seed_hypotheses(self, journal_entry: JournalEntry) -> List[CruxHypothesis]:
         """
-        Extract 2-4 concise candidate hypotheses from the journal entry.
+        Extract 2-8 concise candidate hypotheses from the journal entry.
         """
         logger.info("Seeding initial hypotheses from journal entry")
         
@@ -54,7 +54,7 @@ class ExcavationEngine:
         Focus on salience cues like goals/obstacles, affect intensity, and recurring themes.
         
         Each hypothesis should be:
-        - 1-2 sentences max
+        - 1-4 sentences max
         - A potential root psychological or emotional issue
         - Distinct from the others
         - Testable through questions
@@ -72,7 +72,7 @@ class ExcavationEngine:
             response = await self.client.chat.completions.create(
                 model=self.settings.model,
                 messages=[{"role": "user", "content": prompt}],
-                max_completion_tokens=800
+                max_completion_tokens=5000
             )
             
             content = response.choices[0].message.content or ""
