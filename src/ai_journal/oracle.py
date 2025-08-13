@@ -11,14 +11,15 @@ from ai_journal.models import (
     Perspective, Perspectives, Prophecy, Framework, AgreementItem, 
     TensionPoint, AgreementStance, AgreementScorecardResponse
 )
+from ai_journal.config import get_settings
 
 
 class OracleAgent:
     """Oracle meta-agent that synthesizes perspectives from multiple philosophical frameworks."""
     
-    def __init__(self, client: AsyncOpenAI, model: str = "gpt-4o-mini"):
+    def __init__(self, client: AsyncOpenAI, model: str = None):
         self.client = client
-        self.model = model
+        self.model = model or get_settings().model
     
     async def generate_prophecy(self, perspectives: Perspectives) -> Prophecy:
         """Generate cross-framework meta-analysis and synthesis."""
