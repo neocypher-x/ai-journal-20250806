@@ -2,22 +2,27 @@
 
 ## 1. Purpose
 
-* **Primary outcome**: The system will provide a reflection response when given a user journal entry.
-* **Philosophical scope**: Core grounding in **Buddhism**, **Stoicism**, **Existentialism**, and **NeoAdlerianism**. Optional **Scout** agent proposes relevant ideas from other frameworks when applicable.
+- **Primary outcome**: Confront and validate the root issue (**crux**) in a user journal entry, then generate a reflection focused on that crux.
+- **Secondary outcome**: Weave **confirmed secondary themes** into the reflection.
+- **Philosophical scope**: Core grounding in **Buddhism**, **Stoicism**, **Existentialism**, and **NeoAdlerianism**; optional **Scout** agent may propose an additional framework.
 
 ---
 
 ## 1.1 Core Entities
 
-* **JournalEntry** — Raw text provided by the user for reflection.
-* **PerspectiveAgent** — Abstract base agent/interface that produces a **Perspective** from a **JournalEntry**. Implemented by concrete agents (e.g., **Buddhist**, **Stoic**, **Existentialist**, **NeoAdlerian**) and any optional frameworks suggested by **Scout**.
-* **Perspective** — Output of one framework's reflection on the journal entry.
-* **Perspectives** — Collection of all *Perspective* objects generated in a session (one per active framework).
+* **JournalEntry** — Raw text provided by the user.
+* **CruxHypothesis** — Candidate statement representing a potential root issue.
+* **Probe** — Contrastive Socratic question designed to discriminate between hypotheses.
+* **ExcavationSummary** — Record of hypotheses, probes, confidence updates, exit reason, and reasoning trail.
+* **PerspectiveAgent** — Produces a **Perspective** from the confirmed crux and secondary themes.
 * **Buddhist**, **Stoic**, **Existentialist**, **NeoAdlerian** — Core **PerspectiveAgents** that each generate one *Perspective*.
 * **Scout** *(optional)* — Agent that proposes an additional framework (philosophical or psychological) and generates its *Perspective*.
+* **Perspective** — Output of one framework's reflection.
+* **Perspectives** — Collection of all *Perspective* objects for a session.
 * **Oracle** — Meta-analysis agent that produces the **Prophecy** from all *Perspectives*.
-* **Prophecy** — Cross-framework meta-analysis and synthesis output from the *Oracle*.
-* **Reflection** — Top-level container for the system's output; contains *Perspectives* and the *Prophecy*.
+* **Prophecy** — Cross-framework synthesis.
+* **Reflection** — Contains *Perspectives* and the *Prophecy*.
+* **DiscardedHypothesisLogItem** — Record of rejected hypotheses for possible future use.
 
 ---
 
@@ -25,7 +30,29 @@
 
 **Perspective** - One Perspective per framework (Buddhism, Stoicism, Existentialism, NeoAdlerianism, plus any from the optional Scout).
 
-### A. **Perspective**
+### A. Agentic Excavation Flow (Info‑Gain Hybrid Cascade)
+
+1. **Seed Hypotheses**
+   - Generate ≤4 CruxHypothesis objects with initial confidence.
+2. **Probe Loop (Info-Gain Hybrid Cascade)**
+   - Select hypothesis pairs/trios with highest expected information gain.
+   - Ask contrastive Socratic probes.
+   - Update confidences/confirmations.
+   - **Exit if**:
+     - Confidence ≥ τ_high and gap ≥ δ_gap.
+     - Confirmations ≥ N_confirmations.
+     - Probes_used ≥ K_budget.
+3. **Validation Checkpoint**
+   - Present candidate crux + reasoning trail + discarded rival reasoning.
+   - If confirmed: promote rivals with ≥1 confirmation to secondary themes, others to discarded log.
+   - If rejected: continue probing.
+4. **Generate Reflection**
+   - Pass confirmed crux and secondary themes to PerspectiveAgents.
+   - Oracle produces Prophecy focused on crux, weaving in secondary themes.
+5. **Hidden Hypothesis Log**
+   - Discarded hypotheses stored but not injected into Prophecy.
+
+### B. Perspective (per Framework)
 
 Inside a Perspective, each framework produces:
 
@@ -41,7 +68,7 @@ Inside a Perspective, each framework produces:
 
 ---
 
-### B. **Prophecy**
+### C. Prophecy (Oracle)
 
 Once all Perspective outputs are generated, the **Oracle** produces the **Prophecy**, which is the cross-framework meta-analysis. The Prophecy consists of:
 
@@ -68,16 +95,14 @@ Once all Perspective outputs are generated, the **Oracle** produces the **Prophe
 
 ---
 
-### C. MVP-Friendly Flow (Stateless)
+### D. End‑to‑End Session Flow (Agentic, Stateless Across Sessions)
 
 1. **Input**: User provides a *JournalEntry* (Markdown or plain text).
-2. **PerspectiveAgents generate Perspectives**: Each active agent (Buddhist, Stoic, Existentialist, NeoAdlerian, and optional **Scout**) produces its Perspective using the JournalEntry.
-3. **Oracle generates the Prophecy**: The **Oracle** reviews all *Perspectives* and produces the *Prophecy*.
-4. **Output**: A **Reflection** object containing:
-
-   * **Perspectives** — individual outputs.
-   * **Prophecy** — cross-perspective synthesis and analysis.
-5. **Stateless Constraint**: Each *JournalEntry* is processed in isolation; there is no cross-session memory or recall in the MVP.
+2. System runs **Agentic Excavation Flow** to a **validated crux** (with explicit reasoning).
+3. System generates **Perspectives** (all active frameworks) using *crux + secondary themes*.
+4. **Oracle generates the Prophecy**: The **Oracle** reviews all *Perspectives* and produces the *Prophecy*.
+5. System returns **Reflection** + **ExcavationSummary** (for transparency).
+6. **Stateless constraint**: no cross‑session memory is consulted or injected into outputs (discarded hypotheses may be stored for future use but never auto‑injected).
 
 ---
 
@@ -86,28 +111,86 @@ Once all Perspective outputs are generated, the **Oracle** produces the **Prophe
 * **User base**: Single user (Chris)
 * **Session frequency**: On-demand ad-hoc queries
 
-## 3. Journal Entry Requirements
+## 3. Parameters (Default)
+
+These parameters are defined on the server.
+
+- τ_high = 0.80
+- δ_gap = 0.25
+- N_confirmations = 2
+- K_budget = 4
+- Max hypotheses = 4
+- Socratic excavation style.
+
+### 3.1 Journal Entry Requirements
 
 * **Input formats**: Markdown (.md) or plain text (.txt)
 * **Source**: Local file system (possible cloud integration later)
 * **Ingestion cadence**: Real-time processing upon save or upload
 * **Entry size**: 300–1000 words typical
 
-## 4. Conversation & Behavior
+## 4. Outputs
+* **ReflectionResponse**: Contains Reflection + ExcavationSummary.
+* **HiddenHypothesisLog**: Accessible only on explicit request.
 
-* **Tone**: Can shift between Socratic questioning and direct guidance.
-* **Depth levels**:
+## 5. Guarantees
+* Every plausible hypothesis is confirmed, discarded with reason, or promoted to secondary theme before exit.
+* Explicit reasoning presented at validation.
+* Discarded hypotheses excluded from Prophecy by default.
 
-  * Surface-level observations
-  * Text-cited analysis (when needed)
-* **Boundaries**: No excluded topics for MVP.
-* **Proactivity**: None in MVP (user-initiated).
+## 6 Architecture Notes
 
-## 5. Personalization
+What pattern is this?
+- **ReAct (Reason+Act)** — During probing, the “act” step is a discriminative probe to test crux hypotheses. Control policy is explicit (τ/δ/N/K) rather than open-ended.
+- **Reflexion / Self-critique** — Explicit reasoning at validation, down-ranking discarded paths; critique targets hypothesis selection.
+- **Tree/Graph-of-Thoughts** — Small frontier of competing cruxes pruned via questions (shallow ToT specialized for diagnosis).
+- **Plan-and-Execute** — Minimal planning (choose next probe), execution is asking; plan updates after evidence.
+- **Active Inference / Experimental Design** — Selects maximally discriminative questions (information gain) until termination.
+- **Orchestrated multi-agent system** — After crux confirmation, dispatches to PerspectiveAgents + Oracle.
+
+Net: Architecture is a **Statechart-controlled, hypothesis-testing ReAct variant feeding specialist agents.**
+
+### Reference Architecture
+1. **Policy & Control (brain)**
+    - Objective: confront root issue + weave secondary themes.
+    - Constraints: τ_high, δ_gap, N_confirmations, K_budget; Socratic style; validation required.
+    - Controller: explicit statechart (Seed → Probe → UpdateBeliefs → CheckExit → Validate → Generate → Deliver).
+    - Termination: hybrid cascade.
+2. **Deliberation Engine (hypothesis loop)**
+    - Hypothesis Manager: ≤4 CruxHypothesis.
+    - Probe Planner: chooses next contrastive question (info gain).
+    - Evidence Scorer: updates confidences & confirmations; records reasoning trail.
+    - Hidden Hypothesis Log: stores discarded items for future use.
+3. **Specialist Layer (post-validation)**
+    - PerspectiveAgents: generate perspectives.
+    - Oracle: composes Prophecy focused on confirmed crux, weaving secondary themes.
+4. **I/O & Platform**
+    - Persistence: optional store for discarded hypotheses; session logs for tuning.
+
+**Why Statechart?**
+- Clear transitions, guard conditions (τ/δ/N/K), predictable recovery, debuggability.
+- Prevents wandering (common ReAct failure).
+
+**Comparisons**
+- vs ReAct: Less tool-centric, more diagnostic.
+- vs Tree/Graph-of-Thoughts: Shallow, contrastive search.
+- vs Reflexion: Critique at validation improves correction.
+- vs Debate: Avoids verbosity, still captures tensions.
+
+**Implementation Notes**
+- Question selection: Start with info gain.
+- Confidence calibration: Conservative τ/δ.
+- Determinism: Low temp for probes; slightly higher for Perspectives/Prophecy.
+- Telemetry: Log exit_reason, scores per probe, validation outcome.
+- Safety/UX: Budget exits should convey uncertainty.
+
+Pattern Name: **Contrastive Socratic Agent (CSA) — statechart-controlled, hypothesis-testing ReAct variant with specialist synthesis.**
+
+## 7. Personalization
 
 TBD
 
-## 6. Knowledge & Citations
+## 8. Knowledge & Citations
 
 * **Citation requirement**: Not required for MVP
 * **Knowledge base**:
@@ -115,21 +198,21 @@ TBD
   * Philosophy & modern psychology (CBT/ACT, etc.)
   * No private library integration initially
 
-## 7. Safety, Privacy & Data Handling
+## 9. Safety, Privacy & Data Handling
 
 * **Storage**: Local storage only for MVP
 * **Retention**: All data kept unless manually deleted
 * **Security**: No encryption for MVP (possible in future)
 * **Audit logs**: Conversation and processing logs stored locally
 
-## 8. Capabilities & Tools
+## 10. Capabilities & Tools
 
 * **State**: Stateless (no persistent memory in MVP)
 * **Tools**: None in MVP (future expansion possible)
 * **Multimodal**: Text only for MVP
 * **Offline mode**: Not required
 
-## 9. System Design
+## 11. System Design
 
 * **Architecture**: Multi-agent system:
 
@@ -143,7 +226,7 @@ TBD
 * **Additional technologies**: FastAPI
 * **Error handling**: Minimal fallback behavior if ingestion or processing fails
 
-## 10. UX & Product Surface
+## 12. UX & Product Surface
 
 * **Interfaces**:
 
@@ -153,7 +236,7 @@ TBD
 * **Notifications**: None in MVP
 * **Accessibility**: None in MVP
 
-## 11. Evaluation & Telemetry
+## 13. Evaluation & Telemetry
 
 * **Metrics**:
 
@@ -161,15 +244,15 @@ TBD
   * Thumbs up/down feedback
 * **Red-teaming**: Basic manual evaluation in MVP
 
-## 12. Legal & Ethics
+## 14. Legal & Ethics
 
 * **Licensing**: TBD for texts and quotations
 * **Data processing agreements**: Not applicable in MVP
 
-## 13. Delivery & Roadmap
+## 15. Delivery & Roadmap
 
 TBD
 
-## 14. Architecture (MVP — Stateless)
+## 16. Architecture (MVP — Stateless)
 
 TBD

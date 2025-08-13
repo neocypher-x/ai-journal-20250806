@@ -3,7 +3,9 @@ Pydantic models for the AI Journal system.
 """
 
 from enum import StrEnum, auto
-from typing import List, Optional
+from typing import List, Optional, Dict, Literal
+from uuid import UUID, uuid4
+from datetime import datetime
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -225,3 +227,144 @@ class ReflectionResponse(BaseModel):
     Response envelope for the generated reflection.
     """
     reflection: Reflection
+
+
+# ---- v2 Excavation Models ---------------------------------------------------
+
+class CruxHypothesis(BaseModel):
+    """
+    A candidate statement representing a potential root issue in the journal entry.
+    """
+    hypothesis_id: UUID = Field(default_factory=uuid4)
+    text: str = Field(min_length=1, max_length=400, description="The hypothesis text")
+    confidence: float = Field(ge=0.0, le=1.0, description="Server-computed confidence score")
+    confirmations: int = Field(ge=0, default=0, description="Number of confirmations from user replies")
+    status: Literal["active", "confirmed", "discarded"] = Field(default="active")
+    discard_reason: Optional[str] = Field(default=None, description="Why this hypothesis was discarded")
+
+
+class Probe(BaseModel):
+    """
+    A contrastive Socratic question designed to discriminate between hypotheses.
+    """
+    probe_id: UUID = Field(default_factory=uuid4)
+    question: str = Field(min_length=1, description="The contrastive question")
+    targets: List[UUID] = Field(min_items=1, description="List of hypothesis_ids this probe targets")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ProbeTurn(BaseModel):
+    """
+    Record of a probe-reply interaction and its analysis.
+    """
+    probe: Probe
+    user_reply: str = Field(min_length=1, description="User's response to the probe")
+    analysis: Optional[str] = Field(default=None, description="Short rationale of the belief update")
+    signals: Optional[Dict[str, float]] = Field(default=None, description="Feature scalars used by scorer")
+    updated_hypotheses: Optional[List[CruxHypothesis]] = Field(default=None, description="Snapshot after update")
+
+
+class DiscardedHypothesisLogItem(BaseModel):
+    """
+    Record of rejected hypotheses for transparency and potential future use.
+    """
+    hypothesis_id: UUID
+    text: str
+    reason: str
+
+
+class ExcavationState(BaseModel):
+    """
+    Server-canonical state for the interactive excavation process.
+    """
+    state_id: UUID = Field(default_factory=uuid4)
+    revision: int = Field(ge=0, default=0, description="Monotonic server counter")
+    integrity: Optional[str] = Field(default=None, description="Optional HMAC for tamper detection")
+    
+    journal_entry: JournalEntry
+    hypotheses: List[CruxHypothesis] = Field(default_factory=list, max_items=4)
+    probes_log: List[ProbeTurn] = Field(default_factory=list)
+    last_probe: Optional[Probe] = Field(default=None)
+    
+    budget_used: int = Field(ge=0, default=0)
+    exit_flags: Dict[str, bool] = Field(default_factory=dict, description="Exit condition diagnostics")
+
+
+class ConfirmedCrux(BaseModel):
+    """
+    The validated root issue from the excavation process.
+    """
+    hypothesis_id: UUID
+    text: str
+    confidence: float = Field(ge=0.0, le=1.0)
+
+
+class SecondaryTheme(BaseModel):
+    """
+    Additional themes that received some confirmation but weren't the main crux.
+    """
+    hypothesis_id: UUID
+    text: str
+    confirmations: int = Field(ge=1, description="Must have at least 1 confirmation")
+    confidence: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+
+
+class ExcavationSummary(BaseModel):
+    """
+    Summary of the excavation process for transparency.
+    """
+    exit_reason: Literal["threshold", "confirmations", "budget"]
+    reasoning_trail: str = Field(min_length=1, description="Narrative of validation & rival handling")
+    discarded_log: List[DiscardedHypothesisLogItem] = Field(default_factory=list)
+
+
+class ExcavationResult(BaseModel):
+    """
+    Final result of a completed excavation.
+    """
+    confirmed_crux: ConfirmedCrux
+    secondary_themes: List[SecondaryTheme] = Field(default_factory=list)
+    excavation_summary: ExcavationSummary
+
+
+# ---- v2 API Request/Response Models -----------------------------------------
+
+class ExcavationInitRequest(BaseModel):
+    """
+    Request to initialize a new excavation.
+    """
+    mode: Literal["init"]
+    journal_entry: JournalEntry
+
+
+class ExcavationStepRequest(BaseModel):
+    """
+    Request to continue an existing excavation.
+    """
+    mode: Literal["continue"]
+    state: ExcavationState
+    user_reply: str = Field(min_length=1)
+    expected_probe_id: UUID = Field(description="Must match last server-issued probe")
+
+
+class ExcavationStepResponse(BaseModel):
+    """
+    Response from an excavation step (init or continue).
+    """
+    complete: bool
+    state: ExcavationState
+    next_probe: Optional[Probe] = Field(default=None)
+    exit_reason: Optional[Literal["threshold", "confirmations", "budget"]] = Field(default=None)
+    result: Optional[ExcavationResult] = Field(default=None)
+
+
+class ReflectionRequestV2(BaseModel):
+    """
+    Request to generate a reflection from a completed excavation.
+    """
+    from_excavation: ExcavationResult
+    enable_scout: bool = Field(default=False)
+    journal_entry: Optional[JournalEntry] = Field(
+        default=None, 
+        description="Optional if recoverable from excavation context"
+    )
