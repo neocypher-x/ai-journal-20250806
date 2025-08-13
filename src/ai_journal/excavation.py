@@ -34,6 +34,25 @@ class BeliefUpdateResponse(BaseModel):
     overall_analysis: str = Field(description="Overall assessment of the user's reply")
 
 
+class SeedHypothesis(BaseModel):
+    """A candidate root issue hypothesis."""
+    text: str = Field(description="The hypothesis statement", min_length=10, max_length=400)
+    rationale: str = Field(description="Brief explanation of why this could be the root issue")
+
+
+class HypothesesSeedResponse(BaseModel):
+    """Structured output for initial hypothesis seeding."""
+    hypotheses: List[SeedHypothesis] = Field(description="2-4 candidate root issue hypotheses", min_length=2, max_length=4)
+    analysis_summary: str = Field(description="Brief analysis of the journal entry")
+
+
+class ProbeResponse(BaseModel):
+    """Structured output for probe generation."""
+    question: str = Field(description="Contrastive Socratic question", min_length=10, max_length=300)
+    reasoning: str = Field(description="Why this question will help distinguish between hypotheses")
+    target_hypotheses: List[int] = Field(description="1-based indices of hypotheses this probe targets")
+
+
 class ExcavationEngine:
     """
     Handles the interactive excavation loop for hypothesis testing.
@@ -45,7 +64,7 @@ class ExcavationEngine:
     
     async def seed_hypotheses(self, journal_entry: JournalEntry) -> List[CruxHypothesis]:
         """
-        Extract 2-8 concise candidate hypotheses from the journal entry.
+        Extract 2-4 concise candidate hypotheses from the journal entry using structured outputs.
         """
         logger.info("Seeding initial hypotheses from journal entry")
         
@@ -59,57 +78,47 @@ class ExcavationEngine:
         - Distinct from the others
         - Testable through questions
         
+        For each hypothesis, provide both the hypothesis text and a brief rationale explaining why this could be the root issue.
+        
         Journal Entry:
         {journal_entry.text}
-        
-        Format your response as a numbered list:
-        1. [hypothesis]
-        2. [hypothesis]
-        ...
         """
         
         try:
-            response = await self.client.chat.completions.create(
+            response = await self.client.responses.parse(
                 model=self.settings.model,
-                messages=[{"role": "user", "content": prompt}],
-                max_completion_tokens=5000
+                input=[
+                    {"role": "system", "content": "You are a psychological analyst identifying root issues in journal entries."},
+                    {"role": "user", "content": prompt}
+                ],
+                text_format=HypothesesSeedResponse
             )
             
-            content = response.choices[0].message.content or ""
-            hypotheses = self._parse_hypotheses(content)
+            seed_response = response.output_parsed
             
-            logger.info(f"Generated {len(hypotheses)} initial hypotheses")
-            return hypotheses
-            
-        except Exception as e:
-            logger.error(f"Failed to seed hypotheses: {e}")
-            # Fallback to basic parsing if AI fails
-            return self._fallback_hypotheses(journal_entry)
-    
-    def _parse_hypotheses(self, content: str) -> List[CruxHypothesis]:
-        """Parse hypotheses from AI response."""
-        hypotheses = []
-        lines = content.strip().split('\n')
-        
-        for line in lines:
-            # Match numbered list items
-            match = re.match(r'^\d+\.\s*(.+)$', line.strip())
-            if match:
-                text = match.group(1).strip()
-                if text and len(text) <= 400:
+            if seed_response and seed_response.hypotheses:
+                # Convert structured hypotheses to CruxHypothesis objects
+                hypotheses = []
+                for i, seed_hyp in enumerate(seed_response.hypotheses):
                     hypothesis = CruxHypothesis(
-                        text=text,
-                        confidence=0.4 + (len(hypotheses) * 0.02),  # slight variation
+                        text=seed_hyp.text,
+                        confidence=0.40,  # Equal starting confidence for all hypotheses
                         confirmations=0,
                         status="active"
                     )
                     hypotheses.append(hypothesis)
-        
-        # Ensure we have at least 2 hypotheses
-        if len(hypotheses) < 2:
-            hypotheses.extend(self._fallback_hypotheses_items(max_count=4-len(hypotheses)))
-        
-        return hypotheses[:4]  # Cap at max_hypotheses
+                
+                logger.info(f"Generated {len(hypotheses)} structured hypotheses")
+                return hypotheses
+            else:
+                logger.warning("No structured hypotheses received, using fallback")
+                return self._fallback_hypotheses(journal_entry)
+            
+        except Exception as e:
+            logger.error(f"Failed to seed hypotheses with structured output: {e}")
+            return self._fallback_hypotheses(journal_entry)
+    
+    # Note: _parse_hypotheses method removed since we now use structured outputs
     
     def _fallback_hypotheses(self, journal_entry: JournalEntry) -> List[CruxHypothesis]:
         """Generate fallback hypotheses if AI fails."""
@@ -128,7 +137,7 @@ class ExcavationEngine:
         for i, text in enumerate(fallbacks[:max_count]):
             hypothesis = CruxHypothesis(
                 text=text,
-                confidence=0.35 + (i * 0.05),
+                confidence=0.40,  # Equal starting confidence
                 confirmations=0,
                 status="active"
             )
