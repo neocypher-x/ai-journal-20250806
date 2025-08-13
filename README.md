@@ -1,315 +1,353 @@
-# AI Journal Reflection System
+# AI Journal Reflection System (v2)
 
-An agentic AI journal system that provides philosophical reflections on user journal entries. The system uses multiple philosophical agents (Buddhist, Stoic, Existentialist) plus an optional Philosophy Scout to analyze journal entries from different philosophical perspectives, then synthesizes insights via an Oracle meta-agent.
+A FastAPI-based agentic system for philosophical journal reflection that provides multi-perspective analysis of personal journal entries through Buddhist, Stoic, Existentialist, and NeoAdlerian frameworks.
+
+## Overview
+
+This system analyzes journal entries through **two complementary workflows**:
+
+1. **One-Shot Reflection** (v1): Direct analysis and philosophical reflection
+2. **Interactive Excavation** (v2): Socratic dialogue to identify root issues before generating reflections
+
+The system generates philosophical reflections from multiple perspectives, synthesized by an Oracle meta-agent that identifies agreements, tensions, and provides unified guidance.
 
 ## Features
 
-- **Multi-Philosophical Analysis**: Get perspectives from Buddhist, Stoic, and Existentialist traditions
-- **Philosophy Scout**: Optionally discover additional relevant philosophical schools
-- **Oracle Synthesis**: Meta-analysis revealing agreements, tensions, and unified wisdom
-- **Modern Web Interface**: Clean, zen-inspired React frontend with responsive design
-- **RESTful API**: FastAPI backend with comprehensive OpenAPI documentation
-- **Comprehensive Testing**: Full test suite with unit and integration tests
+### Core Features
+- **Multi-perspective Analysis**: Buddhist, Stoic, Existentialist, and NeoAdlerian philosophical frameworks
+- **Optional Philosophy Scout**: Suggests additional relevant frameworks (CBT, ACT, Taoism, etc.)
+- **Oracle Synthesis**: Meta-analysis identifying agreements, tensions, and unified guidance
+- **Structured Output**: Complete reflections with perspectives and cross-framework synthesis
+- **FastAPI Backend**: RESTful API with interactive documentation
+- **React Frontend**: Modern web interface for journal entry submission and reflection viewing
+
+### v2 Interactive Excavation
+- **Socratic Dialogue**: AI-driven hypothesis testing through contrastive questions
+- **Root Issue Identification**: Systematic excavation to find the core psychological issue
+- **Evidence-Based Confidence**: Dynamic belief updating based on user responses
+- **Multiple Exit Conditions**: Confidence threshold, confirmation votes, or budget limits
+- **Stateless Design**: Client-driven state management for scalability
 
 ## Architecture
 
-### Technology Stack
-
-- **Backend**: FastAPI + Python 3.12+
-- **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: Tailwind CSS + shadcn/ui components
-- **AI Model**: OpenAI GPT (configurable model)
-- **Package Management**: Poetry for Python dependencies, npm for frontend
-- **Environment Management**: Doppler for secrets and configuration
-- **Testing**: pytest with async support
-
-### System Components
+### Core Components
 
 1. **Philosophical Agents**: Generate individual perspectives
    - Buddhist Agent
    - Stoic Agent  
    - Existentialist Agent
-   - Philosophy Scout (optional) - proposes additional relevant schools
+   - NeoAdlerian Agent
+   - Philosophy Scout (optional)
 
-2. **Oracle Agent**: Performs meta-analysis and synthesis of all perspectives
+2. **Excavation Engine** (v2): Interactive hypothesis testing
+   - Hypothesis seeding from journal entries
+   - Contrastive probe generation
+   - Belief updating with structured outputs
+   - Exit condition monitoring
 
-3. **Web Interface**: React frontend with journal entry form and reflection display
+3. **Oracle Agent**: Performs meta-analysis and synthesis of all perspectives
 
-4. **API Layer**: FastAPI endpoints for reflection generation and frontend serving
+4. **Data Models**: Comprehensive Pydantic models for structured outputs
+
+### Processing Flows
+
+#### v1 One-Shot Flow
+1. User submits journal entry via API
+2. Each philosophical agent generates its perspective concurrently
+3. Oracle analyzes all perspectives and generates prophecy
+4. System returns complete reflection
+
+#### v2 Interactive Flow
+1. User initiates excavation with journal entry
+2. System seeds 2-4 hypothesis candidates
+3. **Interactive Loop**:
+   - AI generates contrastive Socratic questions
+   - User provides responses
+   - System updates hypothesis confidence scores
+   - Continue until exit conditions met
+4. System identifies confirmed crux and secondary themes
+5. Generate enhanced reflection based on excavation results
+
+## Technology Stack
+
+- **Framework**: FastAPI for API endpoints
+- **Package Management**: Poetry (pyproject.toml configuration)
+- **Python Version**: >=3.12
+- **AI Model**: gpt-5-nano (base model)
+- **Structured Outputs**: OpenAI's native Pydantic integration
+- **Key Dependencies**: 
+  - `openai` for AI model integration
+  - `fastapi` and `uvicorn` for web API
+  - `pydantic` for data models and structured outputs
+  - `doppler-env` for environment management
 
 ## Getting Started
 
 ### Prerequisites
 
-- Python 3.12 or higher
-- Node.js 18+ (managed with nvm recommended)
-- Poetry for Python dependency management
-- Doppler CLI for environment management
+- Python 3.12+
+- Poetry
 - OpenAI API key
+- Doppler CLI (for environment management)
 
 ### Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd ai-journal
-   ```
-
-2. **Install Python dependencies:**
+1. Clone the repository
+2. Install dependencies:
    ```bash
    poetry install
    ```
 
-3. **Install frontend dependencies:**
+3. Set up environment variables via Doppler or create `.env` file:
    ```bash
-   cd frontend
-   npm install
-   cd ..
+   OPENAI_API_KEY=your_openai_api_key
    ```
 
-4. **Configure environment:**
-   - Set up your Doppler project with OpenAI API key
-   - Or create a `.env` file with required variables (see Configuration section)
+### Running the Server
 
-### Configuration
+```bash
+# With Doppler (recommended)
+doppler -p ai-journal -c dev run -- poetry run uvicorn ai_journal.main:app --reload
 
-Required environment variables:
+# Or directly with Poetry
+poetry run uvicorn ai_journal.main:app --reload
+```
+
+The API will be available at `http://localhost:8000` with interactive documentation at `http://localhost:8000/docs`.
+
+## API Usage
+
+### v1 One-Shot Reflection
+
+**POST** `/api/reflections`
+
+```json
+{
+  "journal_entry": {
+    "text": "Your journal entry text here..."
+  },
+  "enable_scout": false
+}
+```
+
+### v2 Interactive Excavation
+
+#### Start Excavation
+**POST** `/api/excavations`
+
+```json
+{
+  "mode": "init",
+  "journal_entry": {
+    "text": "I keep saying yes to work I don't want to do..."
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "complete": false,
+  "state": {
+    "state_id": "uuid",
+    "revision": 1,
+    "hypotheses": [
+      {
+        "hypothesis_id": "uuid",
+        "text": "Fear of disappointing others drives automatic yes responses",
+        "confidence": 0.40,
+        "confirmations": 0,
+        "status": "active"
+      }
+    ],
+    "budget_used": 0
+  },
+  "next_probe": {
+    "probe_id": "uuid", 
+    "question": "When you imagine saying no to a request, what specifically worries you most?",
+    "targets": ["hypothesis_id"]
+  }
+}
+```
+
+#### Continue Excavation
+**POST** `/api/excavations`
+
+```json
+{
+  "mode": "continue",
+  "state": { "...": "entire state from previous response" },
+  "user_reply": "I worry they'll think I'm not committed or reliable",
+  "expected_probe_id": "uuid"
+}
+```
+
+#### Generate v2 Reflection
+**POST** `/api/v2/reflections`
+
+```json
+{
+  "from_excavation": {
+    "confirmed_crux": {
+      "hypothesis_id": "uuid",
+      "text": "Fear of disappointing others drives people-pleasing behavior", 
+      "confidence": 0.85
+    },
+    "secondary_themes": [],
+    "excavation_summary": {
+      "exit_reason": "threshold",
+      "reasoning_trail": "..."
+    }
+  },
+  "enable_scout": false
+}
+```
+
+## Configuration
+
+### Environment Variables
 - `OPENAI_API_KEY`: Your OpenAI API key
-- `DEBUG`: Set to `true` for debug logging (optional)
-- `LOG_LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR) (optional)
-- `MODEL`: OpenAI model to use (default: gpt-4o-mini) (optional)
+- `MODEL`: AI model to use (default: gpt-5-nano)
+- `HOST`: Server host (default: 0.0.0.0)
+- `PORT`: Server port (default: 8000)
+- `DEBUG`: Enable debug mode (default: False)
+- `LOG_LEVEL`: Logging level (default: DEBUG)
 
-## Usage
-
-### Running the Application
-
-1. **Build the frontend:**
-   ```bash
-   cd frontend
-   npm run build
-   cd ..
-   ```
-
-2. **Start the server:**
-   ```bash
-   # With Doppler (recommended)
-   doppler -p ai-journal -c dev run -- poetry run uvicorn ai_journal.main:app --reload
-
-   # Or directly (ensure environment variables are set)
-   poetry run uvicorn ai_journal.main:app --reload
-   ```
-
-3. **Access the application:**
-   - **Web Interface**: http://localhost:8000/
-   - **API Documentation**: http://localhost:8000/docs
-   - **Health Check**: http://localhost:8000/api/health
-
-### Using the Web Interface
-
-1. Navigate to http://localhost:8000/
-2. Enter your journal entry (50-1000 words recommended)
-3. Optionally enable Philosophy Scout for additional perspectives
-4. Click "Get Reflection" to generate your philosophical analysis
-5. Explore the perspectives and oracle synthesis
-6. Use "New Reflection" to analyze another entry
-
-### Using the API
-
-**Generate Reflection:**
-```bash
-curl --request POST \
-  --url http://localhost:8000/api/reflections \
-  --header 'Content-Type: application/json' \
-  --data '{
-    "journal_entry": {
-      "text": "Your journal entry text here..."
-    },
-    "enable_scout": false
-  }'
-```
-
-**Mock Mode (for rapid frontend development):**
-```bash
-curl --request POST \
-  --url 'http://localhost:8000/api/reflections?mock=true' \
-  --header 'Content-Type: application/json' \
-  --data '{
-    "journal_entry": {
-      "text": "Your journal entry text here..."
-    },
-    "enable_scout": false
-  }'
-```
-
-**Health Check:**
-```bash
-curl http://localhost:8000/api/health
-```
+### v2 Excavation Parameters
+- `TAU_HIGH`: Confidence threshold for exit (default: 0.80)
+- `DELTA_GAP`: Margin to second-best for exit (default: 0.25)
+- `N_CONFIRMATIONS`: Confirmation votes needed (default: 2)
+- `K_BUDGET`: Maximum probe turns (default: 4)
+- `MAX_HYPOTHESES`: Maximum concurrent hypotheses (default: 4)
 
 ## Development
 
-### Development Workflow
+### Testing
 
-1. **Backend Development:**
-   ```bash
-   # Run with auto-reload
-   doppler -p ai-journal -c dev run -- poetry run uvicorn ai_journal.main:app --reload
-   ```
-
-2. **Frontend Development:**
-   ```bash
-   cd frontend
-   # Development server with API proxy
-   npm run dev
-   ```
-
-3. **Building for Production:**
-   ```bash
-   cd frontend
-   npm run build
-   cd ..
-   ```
-
-4. **Rapid Frontend Testing with Mock Mode:**
-   - Add `?mock=true` to the URL: http://localhost:8000/?mock=true
-   - Or click the 🎭 MOCK toggle button in the top-right corner
-   - Mock mode returns instant hardcoded responses without making OpenAI API calls
-   - Perfect for UI development, styling, and testing user flows
-
-### Running Tests
-
-**All tests:**
 ```bash
+# Run all tests with Doppler
 doppler -p ai-journal -c dev run -- poetry run pytest -v
+
+# Run v2 specific tests
+doppler -p ai-journal -c dev run -- poetry run pytest tests/test_v2_basic.py -v
 ```
 
-**Unit tests only (no API calls):**
+### Mock Mode for Frontend Development
+
+For rapid frontend development without API costs:
+
 ```bash
-poetry run pytest tests/ -k "not slow" -v
+# Add ?mock=true to any API call
+curl 'http://localhost:8000/api/reflections?mock=true' \
+  --data '{"journal_entry": {"text": "test"}, "enable_scout": false}'
 ```
 
-**Single test file:**
+### Frontend Development
+
+The React frontend is located in the `frontend/` directory:
+
 ```bash
-doppler -p ai-journal -c dev run -- poetry run pytest tests/test_example.py -v
+cd frontend
+npm install
+npm run dev
 ```
 
-**Using VSCode Test Configurations:**
-- Use the "Test: All Tests" launch configuration
-- Or "Test: Current File" for focused testing
-
-### Project Structure
+## File Structure
 
 ```
 ai-journal/
-├── src/ai_journal/          # Python backend
-│   ├── __init__.py
-│   ├── main.py             # FastAPI app with frontend serving
-│   ├── models.py           # Pydantic data models
-│   ├── agents.py           # Philosophical agents
-│   ├── oracle.py           # Oracle meta-agent
-│   ├── service.py          # Main service orchestration
-│   └── config.py           # Configuration management
-├── frontend/               # React frontend
-│   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── lib/           # Utilities and API client
-│   │   ├── types/         # TypeScript type definitions
-│   │   └── App.tsx        # Main React app
-│   ├── package.json
-│   └── vite.config.ts     # Vite configuration
-├── tests/                 # Test suite
-├── static/               # Built frontend assets (auto-generated)
-├── pyproject.toml        # Poetry configuration
-└── README.md
+├── src/ai_journal/              # Main package
+│   ├── agents.py                # Philosophical agents
+│   ├── config.py                # Configuration management
+│   ├── excavation.py            # v2 interactive excavation engine
+│   ├── main.py                  # FastAPI application
+│   ├── models.py                # Pydantic data models (v1 + v2)
+│   ├── oracle.py                # Oracle meta-agent
+│   └── service.py               # Orchestration service
+├── frontend/                    # React frontend
+├── tests/                       # Test suite
+│   └── test_v2_basic.py        # v2 excavation tests
+├── specifications.md            # v1 system specifications
+├── v2-implementation-specifications.md  # v2 detailed specs
+├── v2-completion-summary.md     # v2 implementation summary
+├── pyproject.toml              # Poetry configuration
+└── README.md                   # This file
 ```
 
-### API Endpoints
+## API Endpoints Summary
 
-- `GET /` - Serve React frontend
-- `GET /api/health` - Health check
-- `POST /api/reflections` - Generate philosophical reflection
-- `GET /docs` - Interactive API documentation
-- `GET /{path:path}` - Catch-all for React router
+| Endpoint | Method | Purpose | Version |
+|----------|--------|---------|---------|
+| `/api/reflections` | POST | One-shot reflection generation | v1 (MVP) |
+| `/api/excavations` | POST | Interactive excavation workflow | v2 |
+| `/api/v2/reflections` | POST | Generate reflection from excavation | v2 |
+| `/api/health` | GET | Health check | All |
 
 ## Data Models
 
-### Input Models
+### v1 Models
 - **JournalEntry**: User's journal text
-- **ReflectionRequest**: Journal entry + scout enable flag
-
-### Output Models
-- **Perspective**: Single philosophical school analysis with:
-  - Framework identification
-  - Core principle invoked
-  - Challenge framing
-  - Practical experiment
-  - Potential trap
-  - Key metaphor
-
-- **Prophecy**: Oracle meta-analysis with:
-  - Agreement scorecard (pairwise framework comparisons)
-  - Tension summary (philosophical conflicts)
-  - Synthesis (unified wisdom)
-  - What is lost by blending (trade-offs)
-
+- **Perspective**: Single philosophical school analysis
+- **Prophecy**: Oracle meta-analysis with agreements, tensions, synthesis
 - **Reflection**: Complete analysis containing perspectives + prophecy
+
+### v2 Excavation Models
+- **CruxHypothesis**: Candidate root issue with confidence tracking
+- **Probe**: Contrastive Socratic question for hypothesis testing
+- **ExcavationState**: Server-canonical state for interactive sessions
+- **ExcavationResult**: Final validated crux with secondary themes
 
 ## Philosophical Frameworks
 
 ### Core Traditions
-- **Buddhism**: Focus on reducing suffering through mindful awareness and compassion
+- **Buddhism**: Focus on reducing suffering through mindful awareness and impermanence
 - **Stoicism**: Emphasis on virtue, rational control, and acceptance of what cannot be changed  
 - **Existentialism**: Stress on authentic choice, freedom, and personal responsibility
+- **NeoAdlerianism**: Individual psychology focusing on social interest and goal orientation
 
 ### Philosophy Scout
 When enabled, the Scout agent can identify and invoke additional relevant philosophical traditions based on the specific themes in your journal entry.
 
+## v2 Interactive Excavation Process
+
+The v2 system implements a **Contrastive Socratic Agent (CSA)** - a statechart-controlled, hypothesis-testing ReAct variant with specialist synthesis:
+
+1. **Hypothesis Seeding**: Extract 2-4 candidate root issues using AI analysis
+2. **Interactive Probing**: Generate contrastive questions to distinguish hypotheses
+3. **Belief Updating**: Update confidence scores based on user responses using structured outputs
+4. **Exit Conditions**: Multiple criteria (confidence threshold, confirmations, budget)
+5. **Enhanced Reflection**: Generate focused philosophical perspectives based on confirmed crux
+
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass (`doppler -p ai-journal -c dev run -- poetry run pytest -v`)
-6. Commit your changes (`git commit -m 'Add amazing feature'`)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+1. Follow the existing code style and patterns
+2. Add tests for new functionality  
+3. Update documentation as needed
+4. Ensure all tests pass before submitting
+5. For v2 features, test both interactive excavation and reflection generation
 
 ## Troubleshooting
 
 ### Common Issues
-
-**Frontend build errors:**
-- Ensure Node.js 18+ is installed
-- Delete `node_modules` and `package-lock.json`, then `npm install`
-- Check for TypeScript errors in the console
 
 **API connection issues:**
 - Verify OpenAI API key is set correctly
 - Check Doppler configuration: `doppler secrets`
 - Ensure server is running on the expected port
 
+**v2 Excavation issues:**
+- Check confidence scores are updating in responses
+- Verify structured outputs are being parsed correctly
+- Review excavation state progression through revisions
+
 **Test failures:**
 - Verify API key is available for integration tests
-- Check that all dependencies are installed: `poetry install`
-- Use `pytest -v -s` for more detailed test output
-
-**Debug logging not appearing:**
-- Set `DEBUG=true` in your environment
-- Or set `LOG_LEVEL=DEBUG`
-- Verify logging configuration in the FastAPI startup
-
-### Getting Help
-
-1. Check the [API documentation](http://localhost:8000/docs) when server is running
-2. Review test files in `tests/` for usage examples
-3. Check server logs for detailed error information
-4. Verify environment configuration with `doppler secrets`
+- Use `doppler -p ai-journal -c dev run -- poetry run pytest -v` for full test suite
 
 ## License
 
-[Add your license information here]
+[License details to be determined]
 
 ## Acknowledgments
 
-Built with inspiration from classical philosophical traditions and modern AI capabilities to help people reflect more deeply on their experiences and challenges.
+Built with inspiration from classical philosophical traditions and modern AI capabilities to help people reflect more deeply on their experiences and challenges. v2 adds interactive Socratic dialogue capabilities for deeper psychological exploration.
