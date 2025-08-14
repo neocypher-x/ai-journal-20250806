@@ -230,8 +230,8 @@ class FACDEngine:
         if user_event:
             await self._process_user_event(state, user_event)
             
-        # Check stop conditions
-        exit_reason = self._should_stop(state)
+        # Check stop conditions (including EVI threshold)
+        exit_reason = await self._should_stop_with_evi_check(state)
         if exit_reason:
             logger.info(f"FACD stopping due to: {exit_reason}")
             result = await self._finalize(state, exit_reason)
@@ -389,6 +389,26 @@ class FACDEngine:
         if state.revision >= self.config.MAX_STEPS:
             return "budget"
             
+        return None
+    
+    async def _should_stop_with_evi_check(self, state: AgentState) -> Optional[str]:
+        """Check termination conditions including EVI threshold."""
+        # First check standard conditions
+        exit_reason = self._should_stop(state)
+        if exit_reason:
+            return exit_reason
+            
+        # Check EVI threshold: stop if best action EVI < ε
+        candidate_actions = await self._enumerate_actions(state)
+        if candidate_actions:
+            scored_actions = await self._score_actions(candidate_actions, state)
+            if scored_actions:
+                best_action, best_score = scored_actions[0]
+                # Extract EVI from score (score = EVI - λ*cost)
+                evi = await self._estimate_evi(best_action, state)
+                if evi < self.config.EPSILON_EVI:
+                    return "epsilon"
+        
         return None
     
     async def _enumerate_actions(self, state: AgentState) -> List[Action]:
