@@ -12,7 +12,7 @@ from ai_journal.models import (
     AskUserAction, HypothesizeAction, ConfirmedCruxV3, AgentResult,
     AgentActInitRequest, AgentActStepRequest, AgentActResponse
 )
-from ai_journal.facd import FACDEngine, FACADConfig, SafetyGuardrails, ObservabilityTracker
+from ai_journal.facd import FACDEngine, FACDConfig, SafetyGuardrails, ObservabilityTracker
 from ai_journal.service import ReflectionService
 
 
@@ -145,7 +145,7 @@ class TestFACDEngine:
     @pytest.fixture
     def facd_engine(self, mock_openai_client):
         """Create FACD engine with mocked client."""
-        config = FACADConfig()
+        config = FACDConfig()
         config.MAX_USER_QUERIES = 2  # Reduced for testing
         return FACDEngine(mock_openai_client, "gpt-4o-mini", config)
     
@@ -385,7 +385,7 @@ class TestEndToEndV3Flow:
         mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
         
         # Create engine with reduced limits for testing
-        config = FACADConfig()
+        config = FACDConfig()
         config.MAX_USER_QUERIES = 2
         config.TAU_HIGH = 0.6  # Lower threshold for quicker completion
         

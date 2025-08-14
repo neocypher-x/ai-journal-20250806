@@ -18,7 +18,7 @@ from ai_journal.models import (
 from ai_journal.agents import BuddhistAgent, StoicAgent, ExistentialistAgent, NeoAdlerianAgent, ScoutAgent
 from ai_journal.oracle import OracleAgent
 from ai_journal.excavation import ExcavationEngine
-from ai_journal.facd import FACDEngine, FACADConfig
+from ai_journal.facd import FACDEngine, FACDConfig
 from ai_journal.config import Settings, get_settings
 
 
@@ -42,7 +42,7 @@ class ReflectionService:
         self.excavation_engine = ExcavationEngine(self.client, self.settings)
         
         # v3 FACD engine
-        facd_config = FACADConfig()
+        facd_config = FACDConfig()
         self.facd_engine = FACDEngine(self.client, self.model, facd_config)
     
     async def generate_reflection(self, request: ReflectionRequest) -> Reflection:
