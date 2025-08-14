@@ -54,7 +54,7 @@ class TestTensionSummary:
         """Set up test fixtures."""
         # Create a mock client for testing
         self.mock_client = AsyncMock(spec=AsyncOpenAI)
-        self.oracle = OracleAgent(self.mock_client, model="gpt-4o-mini")
+        self.oracle = OracleAgent(self.mock_client)
         self.test_perspectives = create_test_perspectives()
 
     async def test_generate_tension_summary_with_mock_response(self):
@@ -172,7 +172,7 @@ class TestTensionSummary:
         self.mock_client.chat.completions.create.assert_called_once()
         call_args = self.mock_client.chat.completions.create.call_args
         
-        assert call_args.kwargs['model'] == 'gpt-4o-mini'
+        # Note: model parameter is now set via get_settings().model instead of being passed explicitly
         assert call_args.kwargs['max_completion_tokens'] == 5000
         assert len(call_args.kwargs['messages']) == 2
         assert call_args.kwargs['messages'][0]['role'] == 'system'
@@ -201,7 +201,7 @@ async def test_with_real_openai_api():
     print("🔍 Testing with real OpenAI API...")
     
     client = AsyncOpenAI(api_key=api_key)
-    oracle = OracleAgent(client, model="gpt-4o-mini")
+    oracle = OracleAgent(client)
     test_perspectives = create_test_perspectives()
     
     try:

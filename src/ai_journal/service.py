@@ -9,14 +9,15 @@ from openai import AsyncOpenAI
 from ai_journal.models import JournalEntry, Reflection, Perspectives, ReflectionRequest
 from ai_journal.agents import BuddhistAgent, StoicAgent, ExistentialistAgent, NeoAdlerianAgent, ScoutAgent
 from ai_journal.oracle import OracleAgent
+from ai_journal.config import get_settings
 
 
 class ReflectionService:
     """Service that coordinates all agents to generate philosophical reflections."""
     
-    def __init__(self, openai_api_key: str, model: str = "gpt-4o-mini"):
+    def __init__(self, openai_api_key: str, model: str = None):
         self.client = AsyncOpenAI(api_key=openai_api_key)
-        self.model = model
+        self.model = model or get_settings().model
         
         # Initialize agents
         self.buddhist_agent = BuddhistAgent(self.client, self.model)
