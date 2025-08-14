@@ -455,11 +455,15 @@ class FACDEngine:
         )
     
     async def _score_actions(self, actions: List[Action], state: AgentState) -> List[Tuple[Action, float]]:
-        """Score actions by expected information gain minus cost."""
+        """
+        Score actions by expected information gain minus cost.
+        
+        Implements: argmax_a E[ΔH] - λ·Cost(a) where ΔH is entropy reduction.
+        """
         scored = []
         
         for action in actions:
-            # Simplified EVI calculation for MVP
+            # Calculate EVI using discrete answer priors for AskUser actions
             evi = await self._estimate_evi(action, state)
             cost = self._action_cost(action)
             score = evi - self.config.LAMBDA_COST * cost
@@ -470,21 +474,110 @@ class FACDEngine:
         return scored
     
     async def _estimate_evi(self, action: Action, state: AgentState) -> float:
-        """Estimate expected information gain for an action."""
-        # Simplified EVI calculation for MVP
+        """
+        Estimate expected information gain (EVI) for an action.
+        
+        Implements: E[H(p(H)) - H(p(H|o))] where o is the observation from action a.
+        """
         current_entropy = self._calculate_entropy(state)
         
         if action.type == "AskUser":
-            # AskUser has high potential information gain
-            return current_entropy * 0.5
+            return await self._estimate_askuser_evi(action, state, current_entropy)
         elif action.type == "Hypothesize":
-            # Hypothesize can add new information but lower certainty
-            return current_entropy * 0.3
+            # Hypothesize adds new nodes but increases uncertainty initially
+            return current_entropy * 0.2  # Low but positive information gain
         elif action.type == "ConfidenceUpdate":
-            # Update can refine but not add new info
+            # Updates existing beliefs without new information
             return current_entropy * 0.1
+        elif action.type == "ClusterThemes":
+            # Merging similar nodes reduces entropy slightly
+            return current_entropy * 0.15
         else:
-            return current_entropy * 0.2
+            # Other internal actions have minimal information gain
+            return current_entropy * 0.05
+    
+    async def _estimate_askuser_evi(self, action: AskUserAction, state: AgentState, current_entropy: float) -> float:
+        """
+        Calculate EVI for AskUser action using discrete answer priors.
+        
+        For each possible user response, estimate the posterior entropy and
+        compute the expected reduction.
+        """
+        if not isinstance(action, AskUserAction) or not action.targets:
+            return current_entropy * 0.3  # Fallback for non-contrastive questions
+            
+        # Define discrete answer outcomes and their priors
+        answer_outcomes = [
+            ("first_choice", 0.4),     # User chooses first option
+            ("second_choice", 0.4),    # User chooses second option  
+            ("both_equally", 0.1),     # User says both are equal
+            ("neither", 0.1)           # User rejects both
+        ]
+        
+        expected_posterior_entropy = 0.0
+        
+        for outcome, prior_prob in answer_outcomes:
+            # Simulate belief update for this outcome
+            posterior_probs = self._simulate_belief_update(state, action, outcome)
+            posterior_entropy = self._calculate_entropy_from_probs(posterior_probs)
+            expected_posterior_entropy += prior_prob * posterior_entropy
+            
+        # Expected information gain = current entropy - expected posterior entropy
+        evi = current_entropy - expected_posterior_entropy
+        return max(0.0, evi)  # Ensure non-negative
+    
+    def _simulate_belief_update(self, state: AgentState, action: AskUserAction, outcome: str) -> Dict[UUID, float]:
+        """Simulate how beliefs would update given a specific user response."""
+        # Start with current probabilities
+        new_probs = dict(state.belief_state.probs)
+        
+        if not action.targets or len(action.targets) < 2:
+            return new_probs
+            
+        target1_id = action.targets[0]
+        target2_id = action.targets[1] if len(action.targets) > 1 else action.targets[0]
+        
+        # Apply update rules based on outcome
+        if outcome == "first_choice":
+            # Boost first target, reduce second
+            if target1_id in new_probs:
+                new_probs[target1_id] *= 1.5
+            if target2_id in new_probs:
+                new_probs[target2_id] *= 0.7
+        elif outcome == "second_choice":
+            # Boost second target, reduce first
+            if target2_id in new_probs:
+                new_probs[target2_id] *= 1.5
+            if target1_id in new_probs:
+                new_probs[target1_id] *= 0.7
+        elif outcome == "both_equally":
+            # Slight boost to both targets
+            if target1_id in new_probs:
+                new_probs[target1_id] *= 1.1
+            if target2_id in new_probs:
+                new_probs[target2_id] *= 1.1
+        elif outcome == "neither":
+            # Reduce both targets
+            if target1_id in new_probs:
+                new_probs[target1_id] *= 0.6
+            if target2_id in new_probs:
+                new_probs[target2_id] *= 0.6
+        
+        # Renormalize probabilities
+        total = sum(new_probs.values())
+        if total > 0:
+            for node_id in new_probs:
+                new_probs[node_id] /= total
+                
+        return new_probs
+    
+    def _calculate_entropy_from_probs(self, probs: Dict[UUID, float]) -> float:
+        """Calculate entropy from probability distribution."""
+        entropy = 0.0
+        for prob in probs.values():
+            if prob > 0:
+                entropy -= prob * math.log2(prob)
+        return entropy
     
     def _action_cost(self, action: Action) -> float:
         """Calculate cost of an action."""
