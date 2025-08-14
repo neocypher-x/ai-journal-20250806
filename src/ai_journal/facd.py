@@ -412,29 +412,125 @@ class FACDEngine:
         return None
     
     async def _enumerate_actions(self, state: AgentState) -> List[Action]:
-        """Enumerate possible actions for current state."""
+        """
+        Enumerate possible actions for current state.
+        
+        Implements specification logic:
+        - Always include AskUser (unless budget exhausted)
+        - Include Hypothesize when entropy is high and coverage is low
+        - Add ClusterThemes when semantic redundancy is detected
+        - Include CounterfactualTest to differentiate persistent vs. situational drivers
+        """
         actions = []
         
-        # Always include AskUser unless budget exhausted
+        # Always include at least one AskUser candidate (unless user budget exhausted)
         if state.budget_used < self.config.MAX_USER_QUERIES:
             actions.append(self._create_ask_user_action(state))
             
-        # Include Hypothesize if entropy is high
-        if self._calculate_entropy(state) > 1.0:
-            actions.append(HypothesizeAction(spawn_k=1))
+        # Include Hypothesize when entropy is high and coverage is low
+        current_entropy = self._calculate_entropy(state)
+        coverage = self._calculate_coverage(state)
+        
+        HIGH_ENTROPY_THRESHOLD = 1.5
+        LOW_COVERAGE_THRESHOLD = 0.6
+        
+        if current_entropy > HIGH_ENTROPY_THRESHOLD and coverage < LOW_COVERAGE_THRESHOLD:
+            # Determine how many new hypotheses to spawn based on entropy
+            spawn_k = min(3, max(1, int(current_entropy)))
+            actions.append(HypothesizeAction(spawn_k=spawn_k))
             
-        # Include clustering if many nodes
-        if len(state.belief_state.nodes) >= 3:
-            actions.append(ClusterThemesAction())
+        # Add ClusterThemes when semantic redundancy is detected
+        if self._detect_semantic_redundancy(state):
+            actions.append(ClusterThemesAction(method="HDBSCAN"))
             
-        # Include confidence update
+        # Include CounterfactualTest to differentiate persistent vs. situational drivers
+        if len(state.belief_state.nodes) >= 2 and state.revision >= 2:
+            actions.append(CounterfactualTestAction(
+                test_spec={"type": "temporal", "scenario": "different_timing"}
+            ))
+            
+        # Include EvidenceRequest for deeper context
+        if current_entropy > 1.0 and len(state.evidence_log) < 3:
+            evidence_types = ["timeline", "constraints", "goals", "norms"]
+            # Choose evidence type based on current state
+            evidence_kind = evidence_types[state.revision % len(evidence_types)]
+            actions.append(EvidenceRequestAction(kind=evidence_kind))
+            
+        # Include SilenceCheck to explore what's not being said
+        if state.revision >= 3 and len(state.belief_state.nodes) >= 2:
+            actions.append(SilenceCheckAction())
+            
+        # Include ConfidenceUpdate for belief refinement
         actions.append(ConfidenceUpdateAction())
         
-        # Include stop if no budget
+        # Include Stop if no budget or other termination criteria met
         if state.budget_used >= self.config.MAX_USER_QUERIES:
             actions.append(StopAction(exit_reason="budget"))
             
         return actions
+    
+    def _calculate_coverage(self, state: AgentState) -> float:
+        """
+        Calculate how well current hypotheses cover the problem space.
+        
+        Coverage is high when:
+        - Hypotheses are diverse (low similarity between them)
+        - Combined confidence is distributed (not too concentrated)
+        """
+        active_nodes = [n for n in state.belief_state.nodes if n.status == "active"]
+        
+        if len(active_nodes) <= 1:
+            return 0.0
+            
+        # Diversity metric: average pairwise dissimilarity
+        total_dissimilarity = 0.0
+        pairs = 0
+        
+        for i, node1 in enumerate(active_nodes):
+            for node2 in active_nodes[i+1:]:
+                similarity = self._calculate_node_similarity(node1, node2)
+                dissimilarity = 1.0 - similarity
+                total_dissimilarity += dissimilarity
+                pairs += 1
+                
+        avg_dissimilarity = total_dissimilarity / pairs if pairs > 0 else 0.0
+        
+        # Distribution metric: how evenly distributed the probabilities are
+        if state.belief_state.probs:
+            probs = [state.belief_state.probs.get(n.node_id, 0.0) for n in active_nodes]
+            # Use entropy as a measure of evenness (normalized by max possible entropy)
+            prob_entropy = sum(-p * math.log2(p) for p in probs if p > 0)
+            max_entropy = math.log2(len(probs)) if len(probs) > 1 else 1.0
+            distribution_evenness = prob_entropy / max_entropy if max_entropy > 0 else 0.0
+        else:
+            distribution_evenness = 0.0
+            
+        # Combine diversity and distribution for overall coverage
+        coverage = (avg_dissimilarity * 0.6 + distribution_evenness * 0.4)
+        return min(1.0, coverage)
+    
+    def _detect_semantic_redundancy(self, state: AgentState) -> bool:
+        """Detect when there's semantic redundancy that would benefit from clustering."""
+        active_nodes = [n for n in state.belief_state.nodes if n.status == "active"]
+        
+        if len(active_nodes) < 3:
+            return False
+            
+        # Check for pairs of nodes with high similarity
+        REDUNDANCY_THRESHOLD = 0.7
+        redundant_pairs = 0
+        
+        for i, node1 in enumerate(active_nodes):
+            for node2 in active_nodes[i+1:]:
+                similarity = self._calculate_node_similarity(node1, node2)
+                if similarity >= REDUNDANCY_THRESHOLD:
+                    redundant_pairs += 1
+                    
+        # If more than 1/3 of possible pairs are redundant, trigger clustering
+        max_pairs = len(active_nodes) * (len(active_nodes) - 1) // 2
+        redundancy_ratio = redundant_pairs / max_pairs if max_pairs > 0 else 0.0
+        
+        return redundancy_ratio > 0.33
     
     def _create_ask_user_action(self, state: AgentState) -> AskUserAction:
         """Create a targeted AskUser action based on current beliefs."""
@@ -627,10 +723,16 @@ class FACDEngine:
             return await self._execute_hypothesize(action, state)
         elif action.type == "ClusterThemes":
             return await self._execute_cluster_themes(action, state)
+        elif action.type == "CounterfactualTest":
+            return await self._execute_counterfactual_test(action, state)
+        elif action.type == "EvidenceRequest":
+            return await self._execute_evidence_request(action, state)
+        elif action.type == "SilenceCheck":
+            return await self._execute_silence_check(action, state)
         elif action.type == "ConfidenceUpdate":
             return await self._execute_confidence_update(action, state)
         else:
-            # Other actions return no evidence for now
+            # Unknown action type
             return None
     
     async def _execute_hypothesize(self, action: HypothesizeAction, state: AgentState) -> Evidence:
@@ -758,6 +860,176 @@ class FACDEngine:
             at_revision=state.revision
         )
     
+    async def _execute_counterfactual_test(self, action: CounterfactualTestAction, state: AgentState) -> Evidence:
+        """Execute counterfactual testing to differentiate persistent vs. situational drivers."""
+        test_spec = action.test_spec
+        test_type = test_spec.get("type", "temporal")
+        
+        if test_type == "temporal":
+            # Test: "Would this issue exist if circumstances were different?"
+            prompt = f"""
+            Consider this journal entry: {state.journal_entry.text[:300]}...
+            
+            Current hypotheses about the core issue:
+            {[node.text for node in state.belief_state.nodes if node.status == "active"][:3]}
+            
+            For each hypothesis, assess: Would this issue likely persist if:
+            - The timing was different (different day/week/season)
+            - The external circumstances changed
+            - The person was in a different environment
+            
+            Provide a brief analysis of which factors seem persistent vs. situational.
+            """
+        else:
+            # Generic counterfactual prompt
+            prompt = f"""
+            Analyze the core issue from this journal entry: {state.journal_entry.text[:300]}...
+            
+            Consider alternative scenarios where key variables are changed.
+            What aspects would likely remain vs. change?
+            """
+        
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.4
+            )
+            
+            analysis = response.choices[0].message.content or "No clear counterfactual insights"
+            
+            return Evidence(
+                kind="MicroExperimentResult",
+                payload={
+                    "test_type": test_type,
+                    "analysis": analysis,
+                    "persistent_factors": "extracted via analysis"  # Could be enhanced
+                },
+                at_revision=state.revision
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to execute counterfactual test: {e}")
+            return Evidence(
+                kind="MicroExperimentResult",
+                payload={"error": "Failed to complete counterfactual analysis"},
+                at_revision=state.revision
+            )
+    
+    async def _execute_evidence_request(self, action: EvidenceRequestAction, state: AgentState) -> Evidence:
+        """Request specific types of evidence to inform belief updates."""
+        evidence_kind = action.kind
+        
+        if evidence_kind == "timeline":
+            context_prompt = "When did this issue first appear? What events preceded it?"
+        elif evidence_kind == "constraints":
+            context_prompt = "What limitations or constraints are affecting this situation?"
+        elif evidence_kind == "goals":
+            context_prompt = "What are you trying to achieve? What outcomes do you want?"
+        elif evidence_kind == "norms":
+            context_prompt = "What expectations (yours or others') are involved in this situation?"
+        else:
+            context_prompt = "What additional context would help understand this better?"
+        
+        # For MVP, we simulate getting this evidence from the journal entry
+        # In a full implementation, this might involve asking the user
+        prompt = f"""
+        Based on this journal entry: {state.journal_entry.text}
+        
+        Extract information relevant to: {context_prompt}
+        
+        Provide specific details if available, or note what information is missing.
+        """
+        
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3
+            )
+            
+            extracted_info = response.choices[0].message.content or f"No clear {evidence_kind} information"
+            
+            return Evidence(
+                kind="ContextDatum",
+                payload={
+                    "evidence_type": evidence_kind,
+                    "extracted_info": extracted_info,
+                    "prompt_used": context_prompt
+                },
+                at_revision=state.revision
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to execute evidence request: {e}")
+            return Evidence(
+                kind="ContextDatum",
+                payload={"error": f"Failed to extract {evidence_kind} evidence"},
+                at_revision=state.revision
+            )
+    
+    async def _execute_silence_check(self, action: SilenceCheckAction, state: AgentState) -> Evidence:
+        """Check for what's not being said - important omissions or avoided topics."""
+        
+        prompt = f"""
+        Analyze what might be missing or avoided in this journal entry: {state.journal_entry.text}
+        
+        Current focus areas: {[node.text for node in state.belief_state.nodes if node.status == "active"][:3]}
+        
+        Consider:
+        - What emotions or feelings are not mentioned?
+        - What relationships or people are notably absent?
+        - What potential causes or solutions are not explored?
+        - What fears or concerns might be unspoken?
+        
+        Identify 1-2 significant omissions that might be relevant to understanding the core issue.
+        """
+        
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.4
+            )
+            
+            silence_analysis = response.choices[0].message.content or "No clear omissions detected"
+            
+            # Extract potential new hypothesis from silence analysis
+            if "missing" in silence_analysis.lower() or "avoid" in silence_analysis.lower():
+                # Could spawn a new hypothesis about the avoided topic
+                potential_hypothesis = f"Avoidance or omission: {silence_analysis[:200]}..."
+                
+                # Add as a new node if it's substantive
+                if len(potential_hypothesis) > 50:
+                    new_node = CruxNode(text=potential_hypothesis[:400])
+                    state.belief_state.nodes.append(new_node)
+                    
+                    # Assign initial probability
+                    n_active = len([n for n in state.belief_state.nodes if n.status == "active"])
+                    if n_active > 0:
+                        # Redistribute probabilities
+                        initial_prob = 0.1  # Conservative initial probability
+                        for node_id in state.belief_state.probs:
+                            state.belief_state.probs[node_id] *= (1.0 - initial_prob)
+                        state.belief_state.probs[new_node.node_id] = initial_prob
+            
+            return Evidence(
+                kind="PatternSignal",
+                payload={
+                    "silence_analysis": silence_analysis,
+                    "omissions_detected": True if "missing" in silence_analysis.lower() else False
+                },
+                at_revision=state.revision
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to execute silence check: {e}")
+            return Evidence(
+                kind="PatternSignal",
+                payload={"error": "Failed to analyze potential omissions"},
+                at_revision=state.revision
+            )
+    
     async def _process_user_event(self, state: AgentState, user_event: Dict[str, Any]) -> None:
         """Process user response and update beliefs."""
         answer_to = user_event.get("answer_to")
@@ -791,41 +1063,234 @@ class FACDEngine:
             logger.debug(f"Received evidence: {evidence.kind}")
     
     async def _update_beliefs_from_user_answer(self, state: AgentState, evidence: Evidence) -> None:
-        """Update beliefs based on user's answer to a question."""
+        """
+        Update beliefs based on user's answer using log-odds space with bounded step size.
+        
+        Implements: Featureize observation vs. each node, update in log-odds space, 
+        merge near-duplicates, retire dominated nodes.
+        """
         if not isinstance(state.last_action, AskUserAction):
             return
             
         answer = evidence.payload.get("answer", "")
         targets = state.last_action.targets
         
-        # Simple belief update based on answer
-        if "first" in answer.lower() or "option" in answer.lower():
-            # User chose first option - boost first target
-            if targets and len(targets) >= 1:
-                target_id = targets[0]
-                if target_id in state.belief_state.probs:
-                    state.belief_state.probs[target_id] *= 1.5
-        elif "second" in answer.lower():
-            # User chose second option - boost second target
-            if targets and len(targets) >= 2:
-                target_id = targets[1]
-                if target_id in state.belief_state.probs:
-                    state.belief_state.probs[target_id] *= 1.5
-        elif "neither" in answer.lower():
-            # User rejected both - reduce target probabilities
-            for target_id in targets:
-                if target_id in state.belief_state.probs:
-                    state.belief_state.probs[target_id] *= 0.7
+        # Featurize the observation against each node
+        node_features = self._featurize_observation(evidence, state.belief_state.nodes)
         
-        # Renormalize probabilities
-        total = sum(state.belief_state.probs.values())
-        if total > 0:
-            for node_id in state.belief_state.probs:
-                state.belief_state.probs[node_id] /= total
-                
+        # Update beliefs in log-odds space with bounded step size
+        self._update_log_odds(state, node_features, targets, answer)
+        
+        # Merge near-duplicate nodes
+        self._merge_similar_nodes(state)
+        
+        # Retire dominated nodes
+        self._retire_dominated_nodes(state)
+        
         # Update rankings
+        self._update_rankings(state)
+    
+    def _featurize_observation(self, evidence: Evidence, nodes: List[CruxNode]) -> Dict[UUID, Dict[str, float]]:
+        """
+        Featurize observation vs. each node (entail/contradict, specificity, novelty).
+        """
+        features = {}
+        answer = evidence.payload.get("answer", "").lower()
+        
+        for node in nodes:
+            if node.status != "active":
+                continue
+                
+            node_features = {
+                "entailment": 0.0,     # How much the answer supports this node
+                "contradiction": 0.0,  # How much the answer contradicts this node  
+                "specificity": 0.0,    # How specific the answer is to this node
+                "novelty": 0.0         # How novel this information is
+            }
+            
+            # Simple keyword-based featurization (could be enhanced with embeddings)
+            node_text_lower = node.text.lower()
+            
+            # Entailment: answer contains words from node text
+            node_words = set(node_text_lower.split())
+            answer_words = set(answer.split())
+            overlap = len(node_words.intersection(answer_words))
+            if len(node_words) > 0:
+                node_features["entailment"] = overlap / len(node_words)
+            
+            # Specificity: how unique the overlap is
+            if overlap > 0:
+                node_features["specificity"] = overlap / len(answer_words) if len(answer_words) > 0 else 0.0
+            
+            # Novelty: based on existing supports/counters
+            existing_evidence = len(node.supports) + len(node.counters)
+            node_features["novelty"] = 1.0 / (1.0 + existing_evidence * 0.1)
+            
+            features[node.node_id] = node_features
+            
+        return features
+    
+    def _update_log_odds(self, state: AgentState, node_features: Dict[UUID, Dict[str, float]], 
+                        targets: List[UUID], answer: str) -> None:
+        """Update beliefs in log-odds space with bounded step size."""
+        
+        # Convert probabilities to log-odds
+        log_odds = {}
+        for node_id, prob in state.belief_state.probs.items():
+            # Avoid log(0) by using small epsilon
+            prob = max(prob, 1e-10)
+            prob = min(prob, 1 - 1e-10)
+            log_odds[node_id] = math.log(prob / (1 - prob))
+        
+        # Define step size bounds
+        MAX_STEP_SIZE = 2.0
+        MIN_STEP_SIZE = 0.1
+        
+        answer_lower = answer.lower()
+        
+        for node_id, features in node_features.items():
+            if node_id not in log_odds:
+                continue
+                
+            # Calculate update magnitude based on features
+            update_strength = (
+                features["entailment"] * 0.4 +
+                features["specificity"] * 0.3 + 
+                features["novelty"] * 0.3
+            )
+            
+            # Determine update direction based on answer and targets
+            update_direction = 0.0
+            
+            if node_id in targets:
+                # This node was specifically being asked about
+                if any(choice in answer_lower for choice in ["first", "option", "yes", "agree"]):
+                    if targets.index(node_id) == 0:  # First target
+                        update_direction = 1.0
+                    elif len(targets) > 1 and targets.index(node_id) == 1:  # Second target
+                        update_direction = -0.5  # Reduce confidence in first when second chosen
+                elif any(choice in answer_lower for choice in ["second"]):
+                    if targets.index(node_id) == 0:  # First target
+                        update_direction = -0.5
+                    elif len(targets) > 1 and targets.index(node_id) == 1:  # Second target  
+                        update_direction = 1.0
+                elif any(choice in answer_lower for choice in ["both", "equally"]):
+                    update_direction = 0.3  # Slight boost to both
+                elif any(choice in answer_lower for choice in ["neither", "no"]):
+                    update_direction = -0.8  # Strong negative
+            else:
+                # Node not directly targeted - small indirect update based on entailment
+                if features["entailment"] > 0.3:
+                    update_direction = 0.2
+                elif features["contradiction"] > 0.3:
+                    update_direction = -0.2
+            
+            # Apply bounded step size
+            step_size = update_strength * MAX_STEP_SIZE
+            step_size = max(MIN_STEP_SIZE, min(MAX_STEP_SIZE, step_size))
+            
+            # Update log-odds
+            log_odds[node_id] += update_direction * step_size
+            
+            # Bound log-odds to prevent extreme values
+            log_odds[node_id] = max(-10.0, min(10.0, log_odds[node_id]))
+        
+        # Convert back to probabilities and renormalize
+        new_probs = {}
+        for node_id, lo in log_odds.items():
+            new_probs[node_id] = 1.0 / (1.0 + math.exp(-lo))
+        
+        # Renormalize to sum to 1
+        total = sum(new_probs.values())
+        if total > 0:
+            for node_id in new_probs:
+                new_probs[node_id] /= total
+        
+        state.belief_state.probs = new_probs
+    
+    def _merge_similar_nodes(self, state: AgentState) -> None:
+        """Merge near-duplicate nodes (cosine ≥ MERGE_RADIUS)."""
+        nodes_to_merge = []
+        active_nodes = [n for n in state.belief_state.nodes if n.status == "active"]
+        
+        for i, node1 in enumerate(active_nodes):
+            for j, node2 in enumerate(active_nodes[i+1:], i+1):
+                similarity = self._calculate_node_similarity(node1, node2)
+                if similarity >= self.config.MERGE_RADIUS:
+                    nodes_to_merge.append((node1, node2, similarity))
+        
+        # Sort by similarity (highest first) and merge
+        nodes_to_merge.sort(key=lambda x: x[2], reverse=True)
+        
+        for node1, node2, similarity in nodes_to_merge:
+            if node1.status == "active" and node2.status == "active":
+                logger.debug(f"Merging nodes with similarity {similarity:.3f}")
+                
+                # Merge node2 into node1
+                node1.supports.extend(node2.supports)
+                node1.counters.extend(node2.counters)
+                node1.text = f"{node1.text} / {node2.text}"[:400]  # Combined text, truncated
+                node2.status = "merged"
+                
+                # Combine probabilities
+                prob1 = state.belief_state.probs.get(node1.node_id, 0.0)
+                prob2 = state.belief_state.probs.get(node2.node_id, 0.0)
+                state.belief_state.probs[node1.node_id] = prob1 + prob2
+                
+                if node2.node_id in state.belief_state.probs:
+                    del state.belief_state.probs[node2.node_id]
+    
+    def _calculate_node_similarity(self, node1: CruxNode, node2: CruxNode) -> float:
+        """Calculate semantic similarity between two nodes (simple word overlap for MVP)."""
+        words1 = set(node1.text.lower().split())
+        words2 = set(node2.text.lower().split())
+        
+        if not words1 and not words2:
+            return 1.0
+        if not words1 or not words2:
+            return 0.0
+            
+        intersection = len(words1.intersection(words2))
+        union = len(words1.union(words2))
+        
+        return intersection / union if union > 0 else 0.0
+    
+    def _retire_dominated_nodes(self, state: AgentState) -> None:
+        """Retire dominated nodes (low probability for K turns)."""
+        K_TURNS_THRESHOLD = 3
+        LOW_PROB_THRESHOLD = 0.05
+        
+        # Track how many turns each node has been below threshold
+        if not hasattr(state, '_low_prob_counts'):
+            state._low_prob_counts = {}
+        
+        for node in state.belief_state.nodes:
+            if node.status != "active":
+                continue
+                
+            current_prob = state.belief_state.probs.get(node.node_id, 0.0)
+            
+            if current_prob < LOW_PROB_THRESHOLD:
+                state._low_prob_counts[node.node_id] = state._low_prob_counts.get(node.node_id, 0) + 1
+                
+                if state._low_prob_counts[node.node_id] >= K_TURNS_THRESHOLD:
+                    logger.debug(f"Retiring dominated node: {node.text[:50]}...")
+                    node.status = "retired"
+                    if node.node_id in state.belief_state.probs:
+                        del state.belief_state.probs[node.node_id]
+            else:
+                # Reset counter if probability recovers
+                state._low_prob_counts[node.node_id] = 0
+    
+    def _update_rankings(self, state: AgentState) -> None:
+        """Update node rankings based on current probabilities."""
+        active_node_ids = [
+            n.node_id for n in state.belief_state.nodes 
+            if n.status == "active" and n.node_id in state.belief_state.probs
+        ]
+        
         state.belief_state.top_ids = sorted(
-            state.belief_state.probs.keys(),
+            active_node_ids,
             key=lambda nid: state.belief_state.probs.get(nid, 0.0),
             reverse=True
         )

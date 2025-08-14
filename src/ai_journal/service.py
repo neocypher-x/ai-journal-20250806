@@ -259,8 +259,8 @@ class ReflectionService:
         complete, updated_state, action, result = await self.facd_engine.step(state)
         
         # If complete on first step (unlikely but possible), generate reflection
-        if complete and result:
-            reflection = await self._generate_reflection_from_facd_result(result, request.journal_entry)
+        # if complete and result:
+            # reflection = await self._generate_reflection_from_facd_result(result, request.journal_entry)
             # Add reflection to result for client
             # Note: This would require extending AgentResult, but for MVP we'll keep it simple
         
@@ -281,8 +281,8 @@ class ReflectionService:
         complete, updated_state, action, result = await self.facd_engine.step(state, user_event)
         
         # If complete, we have a confirmed crux and can generate the full reflection
-        if complete and result:
-            reflection = await self._generate_reflection_from_facd_result(result, state.journal_entry)
+        # if complete and result:
+            # reflection = await self._generate_reflection_from_facd_result(result, state.journal_entry)
             # For now, we'll return the AgentResult. In a full implementation, 
             # we might extend the response to include the reflection directly.
         
