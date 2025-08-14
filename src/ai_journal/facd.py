@@ -26,7 +26,7 @@ from ai_journal.models import (
 logger = logging.getLogger(__name__)
 
 
-class FACADConfig:
+class FACDConfig:
     """Configuration parameters for FACD."""
     TAU_HIGH: float = 0.80
     DELTA_GAP: float = 0.25
@@ -161,10 +161,10 @@ class FACDEngine:
     """
     
     def __init__(self, openai_client: openai.AsyncOpenAI, model: str = "gpt-4o-mini", 
-                 config: Optional[FACADConfig] = None, secret_key: Optional[str] = None):
+                 config: Optional[FACDConfig] = None, secret_key: Optional[str] = None):
         self.client = openai_client
         self.model = model
-        self.config = config or FACADConfig()
+        self.config = config or FACDConfig()
         self.secret_key = secret_key or "default-facd-secret"
         self.guardrails = SafetyGuardrails()
         self.observability = ObservabilityTracker()
@@ -306,8 +306,7 @@ class FACDEngine:
         try:
             response = await self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.3
+                messages=[{"role": "user", "content": prompt}]
             )
             
             content = response.choices[0].message.content or ""
@@ -537,8 +536,7 @@ class FACDEngine:
         try:
             response = await self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.5
+                messages=[{"role": "user", "content": prompt}]
             )
             
             new_hypothesis = response.choices[0].message.content or "Alternative perspective needed"
