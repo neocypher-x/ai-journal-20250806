@@ -155,7 +155,7 @@ class ObservabilityTracker:
         }
 
 
-class FAACDEngine:
+class FACDEngine:
     """
     Fully-Agentic Crux Discovery engine implementing the EVI - λ·Cost policy.
     """

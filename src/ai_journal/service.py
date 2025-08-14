@@ -18,7 +18,7 @@ from ai_journal.models import (
 from ai_journal.agents import BuddhistAgent, StoicAgent, ExistentialistAgent, NeoAdlerianAgent, ScoutAgent
 from ai_journal.oracle import OracleAgent
 from ai_journal.excavation import ExcavationEngine
-from ai_journal.facd import FAACDEngine, FACADConfig
+from ai_journal.facd import FACDEngine, FACADConfig
 from ai_journal.config import Settings, get_settings
 
 
@@ -43,7 +43,7 @@ class ReflectionService:
         
         # v3 FACD engine
         facd_config = FACADConfig()
-        self.facd_engine = FAACDEngine(self.client, self.model, facd_config)
+        self.facd_engine = FACDEngine(self.client, self.model, facd_config)
     
     async def generate_reflection(self, request: ReflectionRequest) -> Reflection:
         """Generate a complete philosophical reflection for a journal entry."""

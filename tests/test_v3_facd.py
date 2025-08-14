@@ -12,7 +12,7 @@ from ai_journal.models import (
     AskUserAction, HypothesizeAction, ConfirmedCruxV3, AgentResult,
     AgentActInitRequest, AgentActStepRequest, AgentActResponse
 )
-from ai_journal.facd import FAACDEngine, FACADConfig, SafetyGuardrails, ObservabilityTracker
+from ai_journal.facd import FACDEngine, FACADConfig, SafetyGuardrails, ObservabilityTracker
 from ai_journal.service import ReflectionService
 
 
@@ -125,7 +125,7 @@ class TestObservabilityTracker:
         assert stats["avg_entropy_reduction"] == 0.5
 
 
-class TestFAACDEngine:
+class TestFACDEngine:
     """Test FACD engine core functionality."""
     
     @pytest.fixture
@@ -147,7 +147,7 @@ class TestFAACDEngine:
         """Create FACD engine with mocked client."""
         config = FACADConfig()
         config.MAX_USER_QUERIES = 2  # Reduced for testing
-        return FAACDEngine(mock_openai_client, "gpt-4o-mini", config)
+        return FACDEngine(mock_openai_client, "gpt-4o-mini", config)
     
     @pytest.mark.asyncio
     async def test_init_session(self, facd_engine):
@@ -389,7 +389,7 @@ class TestEndToEndV3Flow:
         config.MAX_USER_QUERIES = 2
         config.TAU_HIGH = 0.6  # Lower threshold for quicker completion
         
-        engine = FAACDEngine(mock_client, "gpt-4o-mini", config)
+        engine = FACDEngine(mock_client, "gpt-4o-mini", config)
         
         # Initialize session
         journal_entry = JournalEntry(text="I'm struggling to balance work and personal life. Everything feels chaotic.")
