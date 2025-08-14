@@ -11,11 +11,14 @@ from ai_journal.models import (
     JournalEntry, Reflection, Perspectives, ReflectionRequest,
     # v2 models
     ExcavationInitRequest, ExcavationStepRequest, ExcavationStepResponse,
-    ExcavationState, ExcavationResult, ReflectionRequestV2, ProbeTurn
+    ExcavationState, ExcavationResult, ReflectionRequestV2, ProbeTurn,
+    # v3 models
+    AgentActInitRequest, AgentActStepRequest, AgentActResponse, AgentState, AgentResult
 )
 from ai_journal.agents import BuddhistAgent, StoicAgent, ExistentialistAgent, NeoAdlerianAgent, ScoutAgent
 from ai_journal.oracle import OracleAgent
 from ai_journal.excavation import ExcavationEngine
+from ai_journal.facd import FACDEngine, FACDConfig
 from ai_journal.config import Settings, get_settings
 
 
@@ -37,6 +40,10 @@ class ReflectionService:
         
         # v2 excavation engine
         self.excavation_engine = ExcavationEngine(self.client, self.settings)
+        
+        # v3 FACD engine
+        facd_config = FACDConfig()
+        self.facd_engine = FACDEngine(self.client, self.model, facd_config)
     
     async def generate_reflection(self, request: ReflectionRequest) -> Reflection:
         """Generate a complete philosophical reflection for a journal entry."""
@@ -222,6 +229,105 @@ class ReflectionService:
         prophecy = await self.oracle_agent.generate_prophecy(perspectives)
         
         # Step 4: Assemble final reflection with original journal entry
+        reflection = Reflection(
+            journal_entry=journal_entry,  # Use original, not enhanced
+            perspectives=perspectives,
+            prophecy=prophecy
+        )
+        
+        return reflection
+    
+    # ---- v3 FACD Methods ----
+    
+    async def process_agent_act(self, request: Union[AgentActInitRequest, AgentActStepRequest]) -> AgentActResponse:
+        """Process a v3 agentic action (init or continue)."""
+        
+        if request.mode == "init":
+            return await self._init_agent_session(request)
+        elif request.mode == "continue":
+            return await self._continue_agent_session(request)
+        else:
+            raise ValueError(f"Unknown agent mode: {request.mode}")
+    
+    async def _init_agent_session(self, request: AgentActInitRequest) -> AgentActResponse:
+        """Initialize a new v3 agentic session."""
+        
+        # Initialize FACD session
+        state = await self.facd_engine.init_session(request.journal_entry)
+        
+        # Take first step
+        complete, updated_state, action, result = await self.facd_engine.step(state)
+        
+        # If complete on first step (unlikely but possible), generate reflection
+        # if complete and result:
+            # reflection = await self._generate_reflection_from_facd_result(result, request.journal_entry)
+            # Add reflection to result for client
+            # Note: This would require extending AgentResult, but for MVP we'll keep it simple
+        
+        return AgentActResponse(
+            complete=complete,
+            state=updated_state,
+            action=action,
+            result=result
+        )
+    
+    async def _continue_agent_session(self, request: AgentActStepRequest) -> AgentActResponse:
+        """Continue an existing v3 agentic session."""
+        
+        state = request.state
+        user_event = request.user_event
+        
+        # Continue FACD session
+        complete, updated_state, action, result = await self.facd_engine.step(state, user_event)
+        
+        # If complete, we have a confirmed crux and can generate the full reflection
+        # if complete and result:
+            # reflection = await self._generate_reflection_from_facd_result(result, state.journal_entry)
+            # For now, we'll return the AgentResult. In a full implementation, 
+            # we might extend the response to include the reflection directly.
+        
+        return AgentActResponse(
+            complete=complete,
+            state=updated_state,
+            action=action,
+            result=result
+        )
+    
+    async def _generate_reflection_from_facd_result(self, agent_result: AgentResult, journal_entry: JournalEntry) -> Reflection:
+        """Generate a full reflection from FACD result (confirmed crux + secondary themes)."""
+        
+        # Create enhanced journal entry with crux and themes for perspective generation
+        enhanced_text = f"""
+        {journal_entry.text}
+        
+        [Confirmed Core Issue]: {agent_result.confirmed_crux.text}
+        """
+        
+        if agent_result.secondary_themes:
+            themes_text = ", ".join([theme.text for theme in agent_result.secondary_themes])
+            enhanced_text += f"\n[Secondary Themes]: {themes_text}"
+        
+        enhanced_entry = JournalEntry(text=enhanced_text)
+        
+        # Generate perspectives using the enhanced context
+        perspective_tasks = [
+            self.buddhist_agent.generate_perspective(enhanced_entry),
+            self.stoic_agent.generate_perspective(enhanced_entry),
+            self.existentialist_agent.generate_perspective(enhanced_entry),
+            self.neoadlerian_agent.generate_perspective(enhanced_entry)
+        ]
+        
+        core_perspectives = await asyncio.gather(*perspective_tasks)
+        
+        # Could optionally add Scout perspective here based on crux analysis
+        all_perspectives = list(core_perspectives)
+        
+        perspectives = Perspectives(items=all_perspectives)
+        
+        # Generate Oracle prophecy
+        prophecy = await self.oracle_agent.generate_prophecy(perspectives)
+        
+        # Assemble final reflection with original journal entry
         reflection = Reflection(
             journal_entry=journal_entry,  # Use original, not enhanced
             perspectives=perspectives,

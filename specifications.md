@@ -1,4 +1,4 @@
-# Agentic AI Journal System – Specifications
+# AI Journal System – Specifications
 
 ## 1. Purpose
 
@@ -30,27 +30,51 @@
 
 **Perspective** - One Perspective per framework (Buddhism, Stoicism, Existentialism, NeoAdlerianism, plus any from the optional Scout).
 
-### A. Agentic Excavation Flow (Info‑Gain Hybrid Cascade)
+### A. Fully-Agentic Crux Discovery (FACD)
 
-1. **Seed Hypotheses**
-   - Generate ≤4 CruxHypothesis objects with initial confidence.
-2. **Probe Loop (Info-Gain Hybrid Cascade)**
-   - Select hypothesis pairs/trios with highest expected information gain.
-   - Ask contrastive Socratic probes.
-   - Update confidences/confirmations.
-   - **Exit if**:
-     - Confidence ≥ τ_high and gap ≥ δ_gap.
-     - Confirmations ≥ N_confirmations.
-     - Probes_used ≥ K_budget.
-3. **Validation Checkpoint**
-   - Present candidate crux + reasoning trail + discarded rival reasoning.
-   - If confirmed: promote rivals with ≥1 confirmation to secondary themes, others to discarded log.
-   - If rejected: continue probing.
-4. **Generate Reflection**
-   - Pass confirmed crux and secondary themes to PerspectiveAgents.
-   - Oracle produces Prophecy focused on crux, weaving in secondary themes.
-5. **Hidden Hypothesis Log**
-   - Discarded hypotheses stored but not injected into Prophecy.
+#### Purpose
+“Fully-Agentic Crux Discovery (FACD)" is a fully agentic discovery process that selects its own next action—including querying the user—to efficiently converge on a small set of crux hypotheses that best explain the user’s current difficulty.
+
+#### Overview
+FACD operates as a planner–executor loop maintaining a belief state over dynamic crux hypotheses. At each step, the agent enumerates possible actions and chooses the one with the highest expected information gain net of user‑effort cost. It stops when confidence and separation thresholds are met or when marginal information gain falls below a minimum.
+
+#### Core Concepts
+- **BeliefState**: Probability distribution over candidate **CruxNodes**.
+- **CruxNode**: A hypothesis representing a candidate “crux” with supporting and counter signals; nodes may be active, merged, or retired.
+- **Evidence**: Observations used to update beliefs (user answers, salient entry quotes, pattern signals, contextual data, micro‑experiment results).
+- **Action Set**: `AskUser`, `Hypothesize`, `ClusterThemes`, `CounterfactualTest`, `EvidenceRequest`, `SilenceCheck`, `ConfidenceUpdate`, `Stop`.
+
+#### Control Policy (Information Gain with Cost)
+Actions are selected by the expected reduction in uncertainty (entropy) less a user‑effort cost:
+\[
+\operatorname*{argmax}_a \; \mathbb{E}_{o \sim P(o \mid a)}\!\left[ H(p(H)) - H\!\big(p(H\mid o)\big) \right] - \lambda\,\mathrm{Cost}(a)
+\]
+- **Information term**: expected entropy reduction over crux hypotheses.
+- **Cost term**: models effort/time; `AskUser` has higher cost than internal steps.
+- **Termination**: stop when any holds: (i) confidence threshold \(\max_i p(h_i) \ge \tau\) **and** gap \(\ge \delta\); (ii) best‑action EVI < \(\varepsilon\); (iii) user‑query or step budget reached.
+
+#### Parameters
+- `TAU_HIGH` (\(\tau\)), `DELTA_GAP` (\(\delta\)) — confidence and separation thresholds.
+- `EPSILON_EVI` (\(\varepsilon\)) — minimum expected info gain to continue.
+- `LAMBDA_COST` (\(\lambda\)) — user‑effort trade‑off.
+- `MAX_USER_QUERIES` — budget for `AskUser` actions.
+- `MAX_HYPOTHESES`, `MERGE_RADIUS` — hypothesis graph maintenance.
+**Recommended defaults (MVP):** `TAU_HIGH=0.80`, `DELTA_GAP=0.25`, `EPSILON_EVI=0.05`, `MAX_USER_QUERIES=3`.
+
+#### UX Requirements
+- Present one **Agent move** at a time; for `AskUser`, use ≤200‑char question with 2–4 quick options and “Other…”.  
+- Display a compact **beliefs bar** (top‑3 with probabilities) and a one‑line “Why this question?” rationale.  
+- Allow **Skip**; treat non‑response as evidence. Provide a **Stop** affordance with best‑current crux + uncertainty if invoked.
+
+#### Telemetry & Evaluation
+- Log per‑step: candidate actions, chosen action, EVI estimate, user‑effort cost, response latency.  
+- Metrics: entropy reduced per user question, convergence stability, human face‑validity of cruxes, and downstream reflection quality lift.
+
+#### Safety & Privacy
+- Stateless MVP by default; offer opt‑in history later. Use neutral, non‑leading phrasing and avoid reinforcing harmful beliefs.
+
+#### Integration
+On completion, FACD returns a **confirmed crux** plus **secondary themes**; these are handed to existing Perspective/Oracle components without further changes.
 
 ### B. Perspective (per Framework)
 
@@ -98,7 +122,7 @@ Once all Perspective outputs are generated, the **Oracle** produces the **Prophe
 ### D. End‑to‑End Session Flow (Agentic, Stateless Across Sessions)
 
 1. **Input**: User provides a *JournalEntry* (Markdown or plain text).
-2. System runs **Agentic Excavation Flow** to a **validated crux** (with explicit reasoning).
+2. System runs **Fully-Agentic Crux Discovery (FACD)** to a **validated crux** (with explicit reasoning).
 3. System generates **Perspectives** (all active frameworks) using *crux + secondary themes*.
 4. **Oracle generates the Prophecy**: The **Oracle** reviews all *Perspectives* and produces the *Prophecy*.
 5. System returns **Reflection** + **ExcavationSummary** (for transparency).

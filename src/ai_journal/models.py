@@ -3,10 +3,10 @@ Pydantic models for the AI Journal system.
 """
 
 from enum import StrEnum, auto
-from typing import List, Optional, Dict, Literal
+from typing import List, Optional, Dict, Literal, Union, Any, Annotated
 from uuid import UUID, uuid4
 from datetime import datetime
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, constr, conint
 
 
 class Framework(StrEnum):
@@ -368,3 +368,195 @@ class ReflectionRequestV2(BaseModel):
         default=None, 
         description="Optional if recoverable from excavation context"
     )
+
+
+# ---- v3 FACD Models ---------------------------------------------------------
+
+class CruxNode(BaseModel):
+    """
+    A hypothesis representing a candidate "crux" with supporting and counter signals.
+    """
+    node_id: UUID = Field(default_factory=uuid4)
+    text: constr(min_length=1, max_length=400)
+    priors: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="for diagnostics (0..1)")
+    supports: List[str] = Field(default_factory=list, description="short rationales/snippets")
+    counters: List[str] = Field(default_factory=list, description="counter-evidence snippets")
+    status: Literal["active", "merged", "retired"] = Field(default="active")
+
+
+class BeliefState(BaseModel):
+    """
+    Probability distribution over candidate CruxNodes.
+    """
+    nodes: List[CruxNode] = Field(default_factory=list, max_items=6)
+    probs: Dict[UUID, float] = Field(default_factory=dict, description="normalized probabilities")
+    top_ids: List[UUID] = Field(default_factory=list, description="cached ranking")
+
+
+class Evidence(BaseModel):
+    """
+    Observations used to update beliefs.
+    """
+    kind: Literal["UserAnswer", "EntryQuote", "PatternSignal", "ContextDatum", "MicroExperimentResult"]
+    payload: Dict[str, Any]
+    at_revision: int
+
+
+# ---- Actions (discriminated union) ---
+
+class AskUserAction(BaseModel):
+    """
+    Action to ask the user a targeted question.
+    """
+    type: Literal["AskUser"] = "AskUser"
+    action_id: UUID = Field(default_factory=uuid4)
+    question: constr(min_length=1, max_length=200)
+    quick_options: Optional[List[str]] = Field(default=None, description="2..4 options")
+    targets: List[UUID] = Field(default_factory=list, description="nodes contrasted")
+    rationale: Optional[str] = Field(default=None, description="one‑liner for UI")
+
+
+class HypothesizeAction(BaseModel):
+    """
+    Action to generate new hypothesis nodes.
+    """
+    type: Literal["Hypothesize"] = "Hypothesize"
+    action_id: UUID = Field(default_factory=uuid4)
+    spawn_k: conint(ge=1, le=3) = 1
+
+
+class ClusterThemesAction(BaseModel):
+    """
+    Action to cluster similar themes.
+    """
+    type: Literal["ClusterThemes"] = "ClusterThemes"
+    action_id: UUID = Field(default_factory=uuid4)
+    method: Literal["HDBSCAN", "spectral"] = "HDBSCAN"
+
+
+class CounterfactualTestAction(BaseModel):
+    """
+    Action to test hypotheses with counterfactual scenarios.
+    """
+    type: Literal["CounterfactualTest"] = "CounterfactualTest"
+    action_id: UUID = Field(default_factory=uuid4)
+    test_spec: Dict[str, Any]
+
+
+class EvidenceRequestAction(BaseModel):
+    """
+    Action to request specific evidence types.
+    """
+    type: Literal["EvidenceRequest"] = "EvidenceRequest"
+    action_id: UUID = Field(default_factory=uuid4)
+    kind: Literal["timeline", "constraints", "goals", "norms"]
+
+
+class SilenceCheckAction(BaseModel):
+    """
+    Action to check for what's not being said.
+    """
+    type: Literal["SilenceCheck"] = "SilenceCheck"
+    action_id: UUID = Field(default_factory=uuid4)
+
+
+class ConfidenceUpdateAction(BaseModel):
+    """
+    Action to update confidence scores.
+    """
+    type: Literal["ConfidenceUpdate"] = "ConfidenceUpdate"
+    action_id: UUID = Field(default_factory=uuid4)
+
+
+class StopAction(BaseModel):
+    """
+    Action to stop the excavation process.
+    """
+    type: Literal["Stop"] = "Stop"
+    action_id: UUID = Field(default_factory=uuid4)
+    exit_reason: Literal["threshold", "epsilon", "budget", "guardrail"]
+
+
+Action = Annotated[
+    Union[AskUserAction, HypothesizeAction, ClusterThemesAction,
+          CounterfactualTestAction, EvidenceRequestAction, SilenceCheckAction,
+          ConfidenceUpdateAction, StopAction],
+    Field(discriminator="type")
+]
+
+
+# ---- Agent state & I/O ---
+
+class AgentState(BaseModel):
+    """
+    Complete state for the v3 agentic loop (round-tripped by client).
+    """
+    state_id: UUID = Field(default_factory=uuid4)
+    revision: int = Field(default=0, ge=0, description="Monotonic server counter")
+    integrity: Optional[str] = Field(default=None, description="optional HMAC")
+    journal_entry: JournalEntry
+    belief_state: BeliefState
+    evidence_log: List[Evidence] = Field(default_factory=list)
+    last_action: Optional[Action] = Field(default=None)
+    budget_used: int = Field(default=0, ge=0)
+    exit_flags: Dict[str, bool] = Field(default_factory=dict)
+
+
+class ConfirmedCruxV3(BaseModel):
+    """
+    The confirmed crux from v3 FACD process.
+    """
+    node_id: UUID
+    text: str
+    confidence: float = Field(ge=0.0, le=1.0)
+
+
+class SecondaryThemeV3(BaseModel):
+    """
+    Secondary themes from v3 FACD process.
+    """
+    node_id: UUID
+    text: str
+    confidence: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+
+
+class AgentResult(BaseModel):
+    """
+    Final result from v3 FACD process.
+    """
+    confirmed_crux: ConfirmedCruxV3
+    secondary_themes: List[SecondaryThemeV3] = Field(default_factory=list)
+    reasoning_trail: str
+    exit_reason: Literal["threshold", "epsilon", "budget", "guardrail"]
+
+
+# ---- v3 API Request/Response Models ---
+
+class AgentActInitRequest(BaseModel):
+    """
+    Request to initialize a new v3 agentic session.
+    """
+    mode: Literal["init"]
+    journal_entry: JournalEntry
+
+
+class AgentActStepRequest(BaseModel):
+    """
+    Request to continue an existing v3 agentic session.
+    """
+    mode: Literal["continue"]
+    state: AgentState
+    user_event: Optional[Dict[str, Any]] = Field(
+        default=None, 
+        description="e.g., {'answer_to': action_id, 'value': '...'}"
+    )
+
+
+class AgentActResponse(BaseModel):
+    """
+    Response from v3 agentic action.
+    """
+    complete: bool
+    state: AgentState
+    action: Optional[Action] = Field(default=None)
+    result: Optional[AgentResult] = Field(default=None)
