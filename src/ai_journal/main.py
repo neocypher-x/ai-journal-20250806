@@ -17,9 +17,7 @@ from ai_journal.models import (
     ReflectionRequest, ReflectionResponse,
     # v2 models
     ExcavationInitRequest, ExcavationStepRequest, ExcavationStepResponse,
-    ReflectionRequestV2,
-    # v3 models
-    AgentActInitRequest, AgentActStepRequest, AgentActResponse
+    ReflectionRequestV2
 )
 from ai_journal.service import ReflectionService
 
@@ -187,31 +185,6 @@ async def create_reflection_v2(request: ReflectionRequestV2):
     except Exception as e:
         logging.exception("Failed to generate v2 reflection")
         raise HTTPException(status_code=500, detail=f"Failed to generate reflection: {str(e)}")
-
-
-@app.post("/api/v3/agent/act", response_model=AgentActResponse)
-async def agent_act(request: Union[AgentActInitRequest, AgentActStepRequest]):
-    """Process v3 agentic action (init or continue)."""
-    
-    if not reflection_service:
-        raise HTTPException(status_code=500, detail="Service not initialized")
-    
-    try:
-        response = await reflection_service.process_agent_act(request)
-        return response
-    
-    except ValueError as e:
-        # Client errors (validation, stale state, etc.)
-        if "integrity" in str(e).lower() or "stale" in str(e).lower():
-            raise HTTPException(status_code=409, detail=str(e))  # Conflict
-        elif "answer_to" in str(e).lower():
-            raise HTTPException(status_code=410, detail=str(e))  # Gone
-        else:
-            raise HTTPException(status_code=400, detail=str(e))  # Bad Request
-    
-    except Exception as e:
-        logging.exception("Failed to process v3 agent action")
-        raise HTTPException(status_code=500, detail=f"Failed to process agent action: {str(e)}")
 
 
 # Frontend routes - serve React app
