@@ -6,19 +6,13 @@ import logging
 import os
 from pathlib import Path
 from contextlib import asynccontextmanager
-from typing import Union
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from ai_journal.config import get_settings
-from ai_journal.models import (
-    ReflectionRequest, ReflectionResponse,
-    # v2 models
-    ExcavationInitRequest, ExcavationStepRequest, ExcavationStepResponse,
-    ReflectionRequestV2
-)
+from ai_journal.models import ReflectionRequest, ReflectionResponse
 from ai_journal.service import ReflectionService
 
 # Configure logging for debug output
@@ -81,8 +75,7 @@ async def lifespan(app: FastAPI):
     
     reflection_service = ReflectionService(
         openai_api_key=settings.openai_api_key,
-        model=settings.model,
-        settings=settings
+        model=settings.model
     )
     
     yield
@@ -143,47 +136,6 @@ async def create_reflection(request: ReflectionRequest, mock: bool = False):
     
     except Exception as e:
         logging.exception("Failed to generate reflection")
-        raise HTTPException(status_code=500, detail=f"Failed to generate reflection: {str(e)}")
-
-
-@app.post("/api/excavations", response_model=ExcavationStepResponse)
-async def process_excavation(request: Union[ExcavationInitRequest, ExcavationStepRequest]):
-    """Process an excavation step (init or continue)."""
-    
-    if not reflection_service:
-        raise HTTPException(status_code=500, detail="Service not initialized")
-    
-    try:
-        response = await reflection_service.process_excavation_step(request)
-        return response
-    
-    except ValueError as e:
-        # Client errors (validation, stale state, etc.)
-        if "mismatch" in str(e).lower() or "stale" in str(e).lower():
-            raise HTTPException(status_code=409, detail=str(e))  # Conflict
-        elif "probe id" in str(e).lower():
-            raise HTTPException(status_code=410, detail=str(e))  # Gone
-        else:
-            raise HTTPException(status_code=400, detail=str(e))  # Bad Request
-    
-    except Exception as e:
-        logging.exception("Failed to process excavation step")
-        raise HTTPException(status_code=500, detail=f"Failed to process excavation: {str(e)}")
-
-
-@app.post("/api/v2/reflections", response_model=ReflectionResponse)
-async def create_reflection_v2(request: ReflectionRequestV2):
-    """Generate a reflection from a completed excavation result."""
-    
-    if not reflection_service:
-        raise HTTPException(status_code=500, detail="Service not initialized")
-    
-    try:
-        reflection = await reflection_service.generate_reflection_v2(request)
-        return ReflectionResponse(reflection=reflection)
-    
-    except Exception as e:
-        logging.exception("Failed to generate v2 reflection")
         raise HTTPException(status_code=500, detail=f"Failed to generate reflection: {str(e)}")
 
 
